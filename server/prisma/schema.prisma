@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Show {
+  id                String   @id @default(cuid())
+  title             String
+  slug              String   @unique
+  shortDescription  String
+  fullDescription   String
+  scareLevel        Int
+  durationMinutes   Int
+  ageRestriction    Int
+  sensoryAdvisories String?
+  coverImageUrl     String?
+  basePriceInCents  Int
+  isActive          Boolean  @default(true)
+  slots             Slot[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Slot {
+  id               String       @id @default(cuid())
+  showId           String
+  startsAt         DateTime
+  endsAt           DateTime
+  totalCapacity    Int
+  heldCount        Int          @default(0)
+  bookedCount      Int          @default(0)
+  basePriceInCents Int
+  isPeak           Boolean      @default(false)
+  show             Show         @relation(fields: [showId], references: [id], onDelete: Cascade)
+  ticketItems      TicketItem[]
+  createdAt        DateTime     @default(now())
+
+  @@unique([showId, startsAt])
+  @@index([startsAt])
+}
+
+model TicketCategory {
+  id                String       @id @default(cuid())
+  name              String       @unique
+  priceMultiplier   Decimal?     @db.Decimal(5, 2)
+  fixedPriceInCents Int?
+  description       String
+  ticketItems       TicketItem[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model AddOn {
+  id             String         @id @default(cuid())
+  title          String         @unique
+  description    String
+  priceInCents   Int
+  inventoryStock Int
+  imageUrl       String?
+  bookingItems   BookingAddOn[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Booking {
+  id               String         @id @default(cuid())
+  bookingReference String         @unique
+  customerName     String
+  customerEmail    String
+  totalPaidInCents Int
+  paymentStatus    PaymentStatus  @default(PENDING)
+  stripePaymentIntentId String?    @unique
+  qrCodeTokenHash  String         @unique
+  qrCodePayload    String?        @unique
+  holdExpiresAt    DateTime?
+  ticketItems      TicketItem[]
+  addOns           BookingAddOn[]
+  createdAt        DateTime       @default(now())
+
+  @@index([paymentStatus])
+  @@index([holdExpiresAt])
+}
+
+model TicketItem {
+  id               String         @id @default(cuid())
+  bookingId        String
+  slotId           String
+  ticketCategoryId String
+  priceInCents     Int
+  isScanned        Boolean        @default(false)
+  scannedAt        DateTime?
+  booking          Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  slot             Slot           @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  ticketCategory   TicketCategory @relation(fields: [ticketCategoryId], references: [id], onDelete: Restrict)
+  createdAt        DateTime       @default(now())
+
+  @@index([slotId])
+  @@index([bookingId])
+}
+
+model BookingAddOn {
+  id               String   @id @default(cuid())
+  bookingId        String
+  addOnId          String
+  quantity         Int
+  unitPriceInCents Int
+  booking          Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  addOn            AddOn    @relation(fields: [addOnId], references: [id], onDelete: Restrict)
+  createdAt        DateTime @default(now())
+
+  @@unique([bookingId, addOnId])
+  @@index([addOnId])
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
