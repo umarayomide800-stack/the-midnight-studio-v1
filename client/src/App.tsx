@@ -1098,6 +1098,12 @@ function Portal() {
 
   return (
     <main className="dungeon-shell min-h-screen overflow-hidden text-white">
+      <a
+        className="sr-only fixed left-4 top-4 z-[100] bg-ember px-4 py-3 text-xs font-bold uppercase tracking-widest text-obsidian focus:not-sr-only"
+        href="#main-content"
+      >
+        Skip to main content
+      </a>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
           <a className="group flex items-center gap-3" href="#top" aria-label="The Midnight Studio home">
@@ -1111,7 +1117,13 @@ function Portal() {
               Experiences
             </a>
             <a className="transition hover:text-ember" href="#visit">
-              The descent
+              Visit
+            </a>
+            <a className="transition hover:text-ember" href="#guide">
+              Guide
+            </a>
+            <a className="transition hover:text-ember" href="#faq">
+              FAQ
             </a>
           </nav>
           <button
@@ -1123,7 +1135,7 @@ function Portal() {
         </div>
       </header>
 
-      <section id="top" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
+      <section id="top" aria-labelledby="hero-heading" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
         <div className="hero-image absolute inset-0" />
         <div className="hero-vignette absolute inset-0" />
         <div className="stone-noise absolute inset-0 opacity-30" />
@@ -1132,7 +1144,7 @@ function Portal() {
             <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">
               <span className="h-px w-10 bg-ember" /> Beneath the old quarter
             </div>
-            <h1 className="max-w-4xl font-display text-4xl leading-[0.9] tracking-tight text-white sm:text-6xl lg:text-[7.4rem]">
+            <h1 id="hero-heading" className="max-w-4xl font-display text-4xl leading-[0.9] tracking-tight text-white sm:text-6xl lg:text-[7.4rem]">
               Enter the room.
               <br />
               <span className="text-ember">Stay until it remembers you.</span>
@@ -1169,7 +1181,7 @@ function Portal() {
         </div>
       </section>
 
-      <section id="experiences" className="stone-section relative px-6 py-24 lg:px-12 lg:py-32">
+      <section id="experiences" aria-labelledby="experiences-heading" className="stone-section relative px-6 py-24 lg:px-12 lg:py-32">
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial="hidden"
@@ -1180,7 +1192,7 @@ function Portal() {
           >
             <div>
               <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Choose your room</p>
-              <h2 className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
+              <h2 id="experiences-heading" className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
                 Three ways to lose
                 <br />
                 <span className="text-ember">your way back out.</span>
@@ -1249,11 +1261,11 @@ function Portal() {
         </div>
       </section>
 
-      <section id="visit" className="border-t border-white/10 bg-[#111213] px-6 py-20 lg:px-12 lg:py-28">
+      <section id="visit" aria-labelledby="visit-heading" className="border-t border-white/10 bg-[#111213] px-6 py-20 lg:px-12 lg:py-28">
         <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">Your night begins here</p>
-            <h2 className="max-w-2xl font-display text-4xl leading-tight sm:text-6xl">
+            <h2 id="visit-heading" className="max-w-2xl font-display text-4xl leading-tight sm:text-6xl">
               Bring the ones who
               <br />
               <span className="text-fiery">cannot leave quietly.</span>
@@ -1278,6 +1290,78 @@ function Portal() {
           </button>
         </div>
       </section>
+
+      <section id="guide" aria-labelledby="guide-heading" className="stone-section border-t border-white/10 px-6 py-20 lg:px-12 lg:py-28">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Plan your descent</p>
+            <h2 id="guide-heading" className="font-display text-4xl leading-tight sm:text-6xl">
+              Know the rules
+              <br />
+              <span className="text-ember">before the door opens.</span>
+            </h2>
+            <p className="mt-6 max-w-md text-sm leading-7 text-white/55">
+              Arrive ready, leave room for the unexpected, and give yourself enough time to cross from the street into the story.
+            </p>
+            <button
+              className="ember-button mt-8 inline-flex items-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]"
+              onClick={() => open()}
+            >
+              Check availability <ArrowRight size={16} />
+            </button>
+          </div>
+          <ol className="grid gap-3 sm:grid-cols-2">
+            {[
+              ['01', 'Arrive early', 'Please arrive 20 minutes before your booked time for check-in and briefing.'],
+              ['02', 'Dress for movement', 'Wear closed shoes and clothes you can move through narrow, atmospheric spaces in.'],
+              ['03', 'Stay together', 'Our experiences are designed for groups. Keep your party together once inside.'],
+              ['04', 'Ask for help', 'Tell the team about access needs, sensory concerns, or anything that would help you feel comfortable.']
+            ].map(([number, title, description]) => (
+              <li className="border border-white/10 bg-black/20 p-6" key={number}>
+                <span className="font-mono text-xs text-ember">{number}</span>
+                <h3 className="mt-8 font-display text-2xl">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/50">{description}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section id="faq" aria-labelledby="faq-heading" className="border-t border-white/10 bg-[#111213] px-6 py-20 lg:px-12 lg:py-28">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.75fr_1.25fr]">
+          <div>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">The practical haunting</p>
+            <h2 id="faq-heading" className="font-display text-4xl leading-tight sm:text-6xl">
+              Questions for
+              <br />
+              <span className="text-fiery">the living.</span>
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {[
+              ['Is this suitable for everyone?', 'Each story has its own age guidance and sensory notes. Read the notes on an experience card before booking, and contact the team if you need specific access information.'],
+              ['How long should I allow?', 'Plan for around 90 minutes at the venue, including arrival, briefing, and the experience itself. Your exact duration depends on the story you choose.'],
+              ['Can I change my booking?', 'Contact the studio as soon as possible with your booking reference. We will help where availability allows.'],
+              ['What happens if I feel overwhelmed?', 'You can tell an actor or member of the team at any time. Your comfort matters, and stepping out is always permitted.']
+            ].map(([question, answer]) => (
+              <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}>
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg marker:hidden">
+                  {question}
+                  <span className="text-2xl font-light text-ember transition group-open:rotate-45" aria-hidden="true">+</span>
+                </summary>
+                <p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/10 bg-[#090b0d] px-6 py-8 lg:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 text-[10px] uppercase tracking-[0.18em] text-white/40 sm:flex-row sm:items-center sm:justify-between">
+          <span>The Midnight Studio · The Old Quarter</span>
+          <a className="transition hover:text-ember" href="#top">Return to the entrance</a>
+        </div>
+      </footer>
 
       <AnimatePresence>
         {selectedShow && (

@@ -24,6 +24,8 @@ body {
   color: #f7f0ea;
 }
 button, a { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid #d4af37; outline-offset: 4px; }
+summary::-webkit-details-marker { display: none; }
 ::selection { background: #d4af37; color: #0a0b0d; }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: #090b0d; }
