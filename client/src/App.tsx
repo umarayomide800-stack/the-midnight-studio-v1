@@ -1091,10 +1091,146 @@ function BookingWidget() {
   );
 }
 
+type StudioPageName = 'home' | 'experiences' | 'visit' | 'guide' | 'faq' | 'contact';
+
+function getStudioPage(): StudioPageName {
+  const route = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+  return ['experiences', 'visit', 'guide', 'faq', 'contact'].includes(route) ? (route as StudioPageName) : 'home';
+}
+
+function StudioHeader({ open }: { open: () => void }) {
+  return (
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
+        <a className="group flex items-center gap-3" href="#/" aria-label="The Midnight Studio home">
+          <span className="grid h-9 w-9 place-items-center border border-ember/70 bg-[#0c0f13] text-ember transition group-hover:bg-ember group-hover:text-obsidian">
+            <Sparkles size={16} />
+          </span>
+          <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
+        </a>
+        <nav aria-label="Main navigation" className="hidden items-center gap-7 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55 lg:flex">
+          <a className="transition hover:text-ember" href="#/experiences">Experiences</a>
+          <a className="transition hover:text-ember" href="#/visit">Visit</a>
+          <a className="transition hover:text-ember" href="#/guide">Guide</a>
+          <a className="transition hover:text-ember" href="#/faq">FAQ</a>
+          <a className="transition hover:text-ember" href="#/contact">Contact</a>
+        </nav>
+        <button className="ember-button px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] sm:px-5" onClick={open}>
+          Book tickets
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function StudioPage({ page, shows, open }: { page: Exclude<StudioPageName, 'home'>; shows: EnrichedShow[]; open: (show?: EnrichedShow) => void }) {
+  const pageContent = {
+    experiences: {
+      eyebrow: 'Choose your room',
+      title: 'Three stories.\nOne way out.',
+      description: 'Explore every live horror experience, compare the atmosphere, and choose the room that will follow you home.'
+    },
+    visit: {
+      eyebrow: 'Your night begins here',
+      title: 'Everything you need\nbefore arrival.',
+      description: 'Find us in the Old Quarter, plan your arrival, and know what the night asks of you before you cross the threshold.'
+    },
+    guide: {
+      eyebrow: 'Plan your descent',
+      title: 'Know the rules\nbefore the door opens.',
+      description: 'Arrive ready, leave room for the unexpected, and give yourself enough time to cross from the street into the story.'
+    },
+    faq: {
+      eyebrow: 'The practical haunting',
+      title: 'Questions for\nthe living.',
+      description: 'Straight answers about accessibility, timing, age guidance, changes, and what happens inside.'
+    },
+    contact: {
+      eyebrow: 'Speak to the studio',
+      title: 'Need a human\nat the door?',
+      description: 'Our team can help with access questions, group bookings, and anything that needs a considered answer.'
+    }
+  }[page];
+
+  return (
+    <main className="dungeon-shell min-h-screen overflow-hidden text-white">
+      <a className="sr-only fixed left-4 top-4 z-[100] bg-ember px-4 py-3 text-xs font-bold uppercase tracking-widest text-obsidian focus:not-sr-only" href="#page-content">Skip to main content</a>
+      <StudioHeader open={open} />
+      <div id="page-content" className="mx-auto max-w-7xl px-6 pb-24 pt-36 lg:px-12" tabIndex={-1}>
+        <header className="max-w-3xl border-b border-white/10 pb-12">
+          <p className="text-[10px] font-bold uppercase tracking-[0.38em] text-ember">{pageContent.eyebrow}</p>
+          <h1 className="mt-5 whitespace-pre-line font-display text-5xl leading-[0.95] sm:text-7xl">{pageContent.title}</h1>
+          <p className="mt-7 max-w-xl text-base leading-7 text-white/55">{pageContent.description}</p>
+        </header>
+        {page === 'experiences' && <ExperiencesPageContent shows={shows} open={open} />}
+        {page === 'visit' && <VisitPageContent open={open} />}
+        {page === 'guide' && <GuidePageContent open={open} />}
+        {page === 'faq' && <FaqPageContent />}
+        {page === 'contact' && <ContactPageContent open={open} />}
+      </div>
+      <footer className="border-t border-white/10 bg-[#090b0d] px-6 py-8 lg:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 text-[10px] uppercase tracking-[0.18em] text-white/40 sm:flex-row sm:items-center sm:justify-between">
+          <span>The Midnight Studio · The Old Quarter</span>
+          <a className="transition hover:text-ember" href="#/">Return to the entrance</a>
+        </div>
+      </footer>
+    </main>
+  );
+}
+
+function ExperiencesPageContent({ shows, open }: { shows: EnrichedShow[]; open: (show?: EnrichedShow) => void }) {
+  return (
+    <section aria-label="Available experiences" className="mt-12 grid gap-5 lg:grid-cols-3">
+      {shows.map((show) => (
+        <article className="dungeon-card overflow-hidden border border-white/10" key={show.slug}>
+          <img className="aspect-[0.9] w-full object-cover grayscale-[20%]" src={show.image} alt={`${show.title} atmosphere`} />
+          <div className="p-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-fiery">{show.eyebrow}</p>
+            <h2 className="mt-3 font-display text-2xl">{show.title}</h2>
+            <p className="mt-3 text-sm leading-6 text-white/55">{show.fullDescription || show.shortDescription}</p>
+            <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5 text-[10px] uppercase tracking-widest text-white/50">
+              <span>{show.durationMinutes} minutes</span><span>{show.ageRestriction}+ only</span>
+            </div>
+            <button className="ember-button mt-6 w-full bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={() => open(show)}>Book this story</button>
+          </div>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function VisitPageContent({ open }: { open: () => void }) {
+  return <div className="mt-12 grid gap-5 md:grid-cols-3">
+    {[['Find the entrance', 'The Old Quarter', 'Your confirmation email includes the final arrival details. Look for the studio mark and arrive 20 minutes early.'], ['Opening hours', 'After dark', 'Sessions run throughout the evening. Choose a date in the booking flow to see live availability.'], ['Group size', '2 to 12 guests', 'Keep your party together and let us know in advance if your group has access requirements.']].map(([title, value, text]) => <article className="border border-white/10 bg-black/20 p-6" key={title}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">{title}</p><h2 className="mt-8 font-display text-2xl">{value}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}
+    <div className="md:col-span-3"><button className="ember-button bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] text-obsidian" onClick={open}>Find a time <ArrowRight className="ml-2 inline" size={16} /></button></div>
+  </div>;
+}
+
+function GuidePageContent({ open }: { open: () => void }) {
+  return <div className="mt-12 grid gap-3 sm:grid-cols-2">{[['01', 'Arrive early', 'Please arrive 20 minutes before your booked time for check-in and briefing.'], ['02', 'Dress for movement', 'Wear closed shoes and clothes you can move through narrow spaces in.'], ['03', 'Stay together', 'Our experiences are designed for groups. Keep your party together once inside.'], ['04', 'Ask for help', 'Tell the team about access needs or sensory concerns before you enter.']].map(([number, title, text]) => <article className="border border-white/10 bg-black/20 p-6" key={number}><span className="font-mono text-xs text-ember">{number}</span><h2 className="mt-8 font-display text-2xl">{title}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}<div className="sm:col-span-2"><button className="ember-button mt-5 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]" onClick={open}>Check availability</button></div></div>;
+}
+
+function FaqPageContent() {
+  return <div className="mt-12 max-w-3xl space-y-3">{[['Is this suitable for everyone?', 'Each story has its own age guidance and sensory notes. Read the notes before booking, and contact the team if you need specific access information.'], ['How long should I allow?', 'Plan for around 90 minutes at the venue, including arrival, briefing, and the experience itself.'], ['Can I change my booking?', 'Contact the studio as soon as possible with your booking reference. We will help where availability allows.'], ['What happens if I feel overwhelmed?', 'Tell an actor or member of the team at any time. Your comfort matters, and stepping out is always permitted.']].map(([question, answer]) => <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}><summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg">{question}<span className="text-2xl text-ember transition group-open:rotate-45" aria-hidden="true">+</span></summary><p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p></details>)}</div>;
+}
+
+function ContactPageContent({ open }: { open: () => void }) {
+  return <div className="mt-12 grid max-w-3xl gap-5 md:grid-cols-2"><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">General enquiries</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:hello@themidnightstudio.example">hello@themidnightstudio.example</a></article><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Bookings</p><h2 className="mt-6 font-display text-2xl">Reserve a room</h2><p className="mt-3 text-sm leading-6 text-white/50">Choose an experience and a live timeslot in under two minutes.</p><button className="ember-button mt-6 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></article></div>;
+}
+
 function Portal() {
   const [selectedShow, setSelectedShow] = useState<EnrichedShow | null>(null);
   const [advisoryShow, setAdvisoryShow] = useState<EnrichedShow | null>(null);
   const { open, shows } = useBooking();
+  const [page, setPage] = useState(() => getStudioPage());
+
+  useEffect(() => {
+    const handleHashChange = () => setPage(getStudioPage());
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  if (page !== 'home') return <StudioPage page={page} shows={shows} open={open} />;
 
   return (
     <main className="dungeon-shell min-h-screen overflow-hidden text-white">
@@ -1106,23 +1242,23 @@ function Portal() {
       </a>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
-          <a className="group flex items-center gap-3" href="#top" aria-label="The Midnight Studio home">
+          <a className="group flex items-center gap-3" href="#/" aria-label="The Midnight Studio home">
             <span className="grid h-9 w-9 place-items-center border border-ember/70 bg-[#0c0f13] text-ember transition group-hover:bg-ember group-hover:text-obsidian">
               <Sparkles size={16} />
             </span>
             <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
           </a>
           <nav className="hidden items-center gap-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
-            <a className="transition hover:text-ember" href="#experiences">
+            <a className="transition hover:text-ember" href="#/experiences">
               Experiences
             </a>
-            <a className="transition hover:text-ember" href="#visit">
+            <a className="transition hover:text-ember" href="#/visit">
               Visit
             </a>
-            <a className="transition hover:text-ember" href="#guide">
+            <a className="transition hover:text-ember" href="#/guide">
               Guide
             </a>
-            <a className="transition hover:text-ember" href="#faq">
+            <a className="transition hover:text-ember" href="#/faq">
               FAQ
             </a>
           </nav>
@@ -1161,7 +1297,7 @@ function Portal() {
               </button>
               <a
                 className="inline-flex items-center justify-center gap-2 px-3 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/65 transition hover:text-ember sm:justify-start"
-                href="#experiences"
+                href="#/experiences"
               >
                 Explore the stories <ArrowDown size={16} />
               </a>
@@ -1359,7 +1495,7 @@ function Portal() {
       <footer className="border-t border-white/10 bg-[#090b0d] px-6 py-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-[10px] uppercase tracking-[0.18em] text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <span>The Midnight Studio · The Old Quarter</span>
-          <a className="transition hover:text-ember" href="#top">Return to the entrance</a>
+          <a className="transition hover:text-ember" href="#/">Return to the entrance</a>
         </div>
       </footer>
 
