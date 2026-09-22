@@ -44,13 +44,14 @@ const shows = [
 const ticketCategories = [
   { name: '1 Hour', fixedPriceInCents: 10000, description: 'One hour experience ticket.' },
   { name: '2 Hours', fixedPriceInCents: 15000, description: 'Two hour experience ticket.' },
-  { name: '3 Hours', fixedPriceInCents: 25000, description: 'Three hour experience ticket.' }
+  { name: '3 Hours', fixedPriceInCents: 25000, description: 'Three hour experience ticket.' },
+  { name: 'Overnight', fixedPriceInCents: 35000, description: 'Overnight experience ticket.' }
 ];
 
 const addOns = [
-  { title: 'Basic Package', description: 'Basic package', priceInCents: 10000, inventoryStock: 500, imageUrl: '/images/basic-package.jpg' },
-  { title: 'Standard Package', description: 'Standard package', priceInCents: 25000, inventoryStock: 500, imageUrl: '/images/standard-package.jpg' },
-  { title: 'Exclusive Package', description: 'Exclusive package', priceInCents: 30000, inventoryStock: 250, imageUrl: '/images/exclusive-package.jpg' }
+  { title: 'Basic Package', description: 'Essential equipment for your experience.', priceInCents: 10000, inventoryStock: 500, imageUrl: '/images/basic-package.jpg' },
+  { title: 'Standard Package', description: 'Enhanced equipment for a deeper descent.', priceInCents: 25000, inventoryStock: 500, imageUrl: '/images/standard-package.jpg' },
+  { title: 'Exclusive Package', description: 'The complete premium equipment set.', priceInCents: 30000, inventoryStock: 250, imageUrl: '/images/exclusive-package.jpg' }
 ];
 
 async function main() {

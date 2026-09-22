@@ -778,8 +778,8 @@ function BookingWidget() {
                 {/* STEP 3: Ticket Party Selection */}
                 {state.step === 3 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">Step 3 / Your party</p>
-                    <h3 className="mt-3 font-display text-3xl">Who is joining the descent?</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">Step 3 / Choose your duration</p>
+                    <h3 className="mt-3 font-display text-3xl">How long will you stay?</h3>
 
                     <div className="mt-7 space-y-3">
                       {ticketCategories.map((category) => {
@@ -862,9 +862,9 @@ function BookingWidget() {
                 {state.step === 4 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">
-                      Step 4 / Optional keepsakes
+                      Step 4 / Equipment packages
                     </p>
-                    <h3 className="mt-3 font-display text-3xl">Take a keepsake before you leave.</h3>
+                    <h3 className="mt-3 font-display text-3xl">Bring the right equipment inside.</h3>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-3">
                       {addOns.map((item) => {

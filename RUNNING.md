@@ -74,7 +74,7 @@ Populate the catalog and timeslots:
 npm run db:seed
 ```
 
-The seed creates 3 shows, 5 ticket categories, 3 add-ons, and timeslots for the next 7 days.
+The seed creates 3 shows, 4 duration packages (1 hour £100, 2 hours £150, 3 hours £250, overnight £350), 3 equipment packages (Basic £100, Standard £250, Exclusive £300), and timeslots for the next 7 days.
 
 ## Start development
 
