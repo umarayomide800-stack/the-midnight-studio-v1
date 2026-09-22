@@ -131,7 +131,7 @@ export async function stripeWebhook(request: Request, response: Response, next: 
       if (!bookingId) throw new ApiError(400, 'PaymentIntent is missing booking metadata.', 'WEBHOOK_METADATA_MISSING');
 
       const confirmed = await prisma.$transaction(async (transaction) => {
-        const booking = await transaction.booking.findUnique({ where: { id: bookingId }, include: { ticketItems: true } });
+        const booking = await transaction.booking.findUnique({ where: { id: bookingId }, include: { ticketItems: { include: { ticketCategory: true, slot: true } }, addOns: { include: { addOn: true } } } });
         if (!booking) throw new ApiError(404, 'Booking not found.', 'BOOKING_NOT_FOUND');
         if (booking.paymentStatus === 'CONFIRMED') return booking;
         if (booking.paymentStatus !== 'PENDING' || booking.stripePaymentIntentId !== paymentIntent.id || booking.totalPaidInCents !== paymentIntent.amount) {
@@ -140,7 +140,7 @@ export async function stripeWebhook(request: Request, response: Response, next: 
         const confirmed = await transaction.booking.update({
           where: { id: booking.id },
           data: { paymentStatus: 'CONFIRMED', holdExpiresAt: null },
-          include: { ticketItems: true }
+          include: { ticketItems: { include: { ticketCategory: true, slot: true } }, addOns: { include: { addOn: true } } }
         });
         const ticketsBySlot = new Map<string, number>();
         for (const ticket of confirmed.ticketItems) ticketsBySlot.set(ticket.slotId, (ticketsBySlot.get(ticket.slotId) ?? 0) + 1);
@@ -150,7 +150,12 @@ export async function stripeWebhook(request: Request, response: Response, next: 
         return confirmed;
       });
 
-      await sendReceipt(confirmed.customerEmail, confirmed.bookingReference);
+      await sendReceipt(confirmed.customerEmail, confirmed.bookingReference, {
+        startsAt: confirmed.ticketItems[0]?.slot.startsAt,
+        ticketCategories: confirmed.ticketItems.map((ticket) => ticket.ticketCategory.name),
+        addOns: confirmed.addOns.map((item) => `${item.addOn.title} x${item.quantity}`),
+        totalPaidInCents: confirmed.totalPaidInCents
+      });
     }
 
     response.json({ received: true });
@@ -159,7 +164,7 @@ export async function stripeWebhook(request: Request, response: Response, next: 
   }
 }
 
-async function sendReceipt(email: string, bookingReference: string) {
+async function sendReceipt(email: string, bookingReference: string, details?: { startsAt?: Date; ticketCategories?: string[]; addOns?: string[]; totalPaidInCents?: number }) {
   if (!resend || !process.env.EMAIL_FROM) {
     console.warn('Receipt email skipped because Resend is not configured.');
     return;
@@ -168,7 +173,7 @@ async function sendReceipt(email: string, bookingReference: string) {
     from: process.env.EMAIL_FROM,
     to: email,
     subject: `The Midnight Studio ticket ${bookingReference}`,
-    html: `<p>Your The Midnight Studio booking is confirmed.</p><p>Booking reference: <strong>${bookingReference}</strong></p>`
+    html: `<h1>The Midnight Studio booking confirmed</h1><p>Booking reference: <strong>${bookingReference}</strong></p><p>Arrival: <strong>${details?.startsAt?.toISOString() ?? 'See your booking details'}</strong></p><p>Tickets: ${details?.ticketCategories?.join(', ') ?? 'See your booking details'}</p><p>Add-ons: ${details?.addOns?.join(', ') || 'None'}</p><p>Total paid: <strong>£${((details?.totalPaidInCents ?? 0) / 100).toFixed(2)}</strong></p>`
   });
   if (result.error) console.error('Receipt email failed', result.error);
 }

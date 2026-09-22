@@ -14,6 +14,16 @@ import type {
 const configuredApiOrigin = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? '';
 const API_BASE = `${configuredApiOrigin}/api/v1`;
 
+async function adminRequest<T>(endpoint: string, adminKey: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey, ...options?.headers }
+  });
+  const body = (await response.json()) as ApiResponse<T>;
+  if (!body.success || body.data === undefined) throw new Error(body.error?.message || `Request failed with status ${response.status}`);
+  return body.data;
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
@@ -52,4 +62,17 @@ export const api = {
     }),
   getBookingStatus: (bookingId: string, customerEmail: string) =>
     request<BookingStatusResponse>(`/bookings/${bookingId}/status?email=${encodeURIComponent(customerEmail)}`),
+  lookupBooking: (reference: string, email: string) => request<any>(`/bookings/lookup?reference=${encodeURIComponent(reference)}&email=${encodeURIComponent(email)}`),
+  cancelBooking: (bookingId: string, email: string) => request<any>(`/bookings/${bookingId}/cancel`, { method: 'POST', body: JSON.stringify({ email }) }),
+  rescheduleBooking: (bookingId: string, email: string, slotId: string) => request<any>(`/bookings/${bookingId}/reschedule`, { method: 'POST', body: JSON.stringify({ email, slotId }) }),
+  adminShows: (adminKey: string) => adminRequest<any[]>('/admin/shows', adminKey),
+  updateAdminShow: (adminKey: string, showId: string, data: Record<string, unknown>) => adminRequest<any>(`/admin/shows/${showId}`, adminKey, { method: 'PATCH', body: JSON.stringify(data) }),
+  adminSlots: (adminKey: string) => adminRequest<any[]>('/admin/slots', adminKey),
+  updateAdminSlot: (adminKey: string, slotId: string, data: Record<string, unknown>) => adminRequest<any>(`/admin/slots/${slotId}`, adminKey, { method: 'PATCH', body: JSON.stringify(data) }),
+  adminBookings: (adminKey: string, search = '') => adminRequest<any[]>(`/admin/bookings?search=${encodeURIComponent(search)}`, adminKey),
+  adminExport: async (adminKey: string) => {
+    const response = await fetch(`${API_BASE}/admin/bookings/export.csv`, { headers: { 'x-admin-key': adminKey } });
+    if (!response.ok) throw new Error('Could not export bookings.');
+    return response.blob();
+  },
 };

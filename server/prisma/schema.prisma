@@ -33,6 +33,7 @@ model Slot {
   totalCapacity    Int
   heldCount        Int          @default(0)
   bookedCount      Int          @default(0)
+  isBlocked        Boolean      @default(false)
   basePriceInCents Int
   isPeak           Boolean      @default(false)
   show             Show         @relation(fields: [showId], references: [id], onDelete: Cascade)
@@ -74,6 +75,8 @@ model Booking {
   totalPaidInCents     Int
   paymentStatus        PaymentStatus  @default(PENDING)
   stripePaymentIntentId String?       @unique
+  stripeRefundId       String?        @unique
+  cancelledAt          DateTime?
   holdExpiresAt        DateTime?
   ticketItems          TicketItem[]
   addOns               BookingAddOn[]

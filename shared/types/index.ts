@@ -24,6 +24,7 @@ export interface Slot {
   remainingCapacity: number;
   basePriceInCents: number;
   isPeak: boolean;
+  isBlocked: boolean;
 }
 
 export interface TimeslotsData {

@@ -1,6 +1,6 @@
 # The Midnight Studio Deployment Playbook
 
-This document describes a production topology for The Midnight Studio guest portal, booking API, PostgreSQL data store, Redis lock layer, Stripe payments, and Resend email.
+This document describes a production topology for The Midnight Studio guest portal, booking API, PostgreSQL data store, Stripe payments, and Resend email. Redis remains optional for future contention reduction.
 
 ## 1. Production architecture
 
@@ -22,7 +22,7 @@ Guest browser -> Vercel or Netlify (client)
 | React/Vite frontend | Vercel or Netlify | Deploy `client`, publish `client/dist`, configure SPA fallback to `index.html`. |
 | Express API | Render Web Service or AWS ECS/Fargate | Run `npm run build --workspace server`, then `node server/dist/index.js`. Add health checks at `/api/health`. |
 | PostgreSQL | Supabase or Neon | Use the pooled connection string for the app and the direct connection string for migrations. Enable SSL. |
-| Redis locks | Upstash Redis | Use TLS and a short TTL for slot locks. Keep Redis failure fail-closed for booking holds. |
+| Optional Redis | Upstash Redis | Available for future contention reduction; PostgreSQL remains the booking correctness boundary. |
 | Payments | Stripe | Configure the webhook endpoint at `/api/v1/webhooks/stripe`. Keep the signing secret server-side. |
 | Receipts | Resend | Configure a verified sending domain and `EMAIL_FROM`. |
 
@@ -73,17 +73,17 @@ Important connection rule:
 
 - `DATABASE_URL` should be the pooled PostgreSQL URL for normal Prisma queries.
 - `DIRECT_DATABASE_URL` should be the direct PostgreSQL URL used by Prisma migrations when the provider supplies one.
-- `REDIS_URL` should be a TLS Upstash connection URL.
+- `REDIS_URL` is optional; PostgreSQL transaction locking is the current booking concurrency control.
 
-## 3. Flash-sale protection
+## 3. Availability and flash-sale protection
 
-The current database `Slot` model tracks `heldCount` and `bookedCount`. Production should add a Redis lock around the hold operation while retaining the PostgreSQL conditional update as the source-of-truth guard.
+The API runs an expired-hold cleanup every 60 seconds and also cleans up before each new hold. Slot holds use a PostgreSQL transaction advisory lock plus the conditional capacity update below, so concurrent requests for one slot are serialized without requiring Redis.
 
 Recommended hold sequence:
 
 1. Validate the request and calculate the ticket count.
-2. Acquire `slot:{slotId}` with `SET key token NX EX 15`.
-3. Inside a short PostgreSQL transaction, remove expired holds and run the conditional capacity update:
+2. Acquire the PostgreSQL transaction advisory lock for the slot.
+3. Inside a short PostgreSQL transaction, run the conditional capacity update:
 
 ```sql
 UPDATE "Slot"
@@ -94,7 +94,7 @@ WHERE "id" = $2
 ```
 
 4. Create the pending booking and ticket rows.
-5. Release the Redis key only if its value still matches the lock token. The lock is a contention reducer, not the correctness boundary.
+5. Let the transaction release the advisory lock automatically on commit or rollback.
 6. On payment success, transfer the ticket count atomically from `heldCount` to `bookedCount`.
 
 Use a short lock TTL so a crashed API process cannot block a slot indefinitely. Do not use a plain `DEL` without token ownership; a delayed request could delete another request's lock.
@@ -106,9 +106,7 @@ Use a short lock TTL so a crashed API process cannot block a slot indefinitely. 
 - Prisma Accelerate is an alternative for managed pooling and read caching; it does not replace the transactional capacity update.
 - Start with a small API replica count and measure pool saturation before scaling horizontally.
 
-### Redis failure policy
-
-If Redis is unavailable, allow read-only show and timeslot requests but fail booking holds closed with a retryable `503`. Never bypass the PostgreSQL capacity guard, and never treat a Redis lock as a booking record.
+Redis is not required for the current booking path. If it is introduced later, it must remain a contention reducer rather than the booking source of truth; PostgreSQL capacity checks and transaction locks must remain in place.
 
 ## 4. Load testing
 

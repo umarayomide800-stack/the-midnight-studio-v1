@@ -45,6 +45,8 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:5432/soma_dungeon?schema=
 
 For payment testing, configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, and `EMAIL_FROM` on the server. Create `client/.env` with:
 
+For the operations dashboard, configure a strong random `ADMIN_API_KEY` on the server and open `#/admin` only for trusted staff.
+
 ```env
 VITE_API_BASE_URL=http://localhost:4000
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...

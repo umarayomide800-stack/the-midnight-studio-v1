@@ -28,7 +28,35 @@ const holdSchema = z.object({
 
 const response = <T>(data: T) => ({ success: true, data });
 
-function toSlotResponse(slot: { id: string; startsAt: Date; endsAt: Date; totalCapacity: number; heldCount: number; bookedCount: number; basePriceInCents: number; isPeak: boolean }) {
+export async function releaseExpiredHolds() {
+  return prisma.$transaction(async (transaction) => {
+    const expiredHolds = await transaction.booking.findMany({
+      where: { paymentStatus: 'PENDING', holdExpiresAt: { lt: new Date() } },
+      select: { id: true, ticketItems: { select: { slotId: true } } }
+    });
+    let releasedBookings = 0;
+
+    for (const expiredHold of expiredHolds) {
+      const cancelled = await transaction.booking.updateMany({
+        where: { id: expiredHold.id, paymentStatus: 'PENDING' },
+        data: { paymentStatus: 'CANCELLED' }
+      });
+      if (cancelled.count !== 1) continue;
+
+      const counts = new Map<string, number>();
+      for (const ticket of expiredHold.ticketItems) counts.set(ticket.slotId, (counts.get(ticket.slotId) ?? 0) + 1);
+      for (const [slotId, count] of counts) {
+        await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${slotId}, 0))`;
+        await transaction.slot.update({ where: { id: slotId }, data: { heldCount: { decrement: count } } });
+      }
+      releasedBookings += 1;
+    }
+
+    return releasedBookings;
+  });
+}
+
+function toSlotResponse(slot: { id: string; startsAt: Date; endsAt: Date; totalCapacity: number; heldCount: number; bookedCount: number; basePriceInCents: number; isPeak: boolean; isBlocked: boolean }) {
   return {
     id: slot.id,
     startsAt: slot.startsAt.toISOString(),
@@ -36,7 +64,8 @@ function toSlotResponse(slot: { id: string; startsAt: Date; endsAt: Date; totalC
     totalCapacity: slot.totalCapacity,
     bookedCount: slot.bookedCount,
     heldCount: slot.heldCount,
-    remainingCapacity: Math.max(0, slot.totalCapacity - slot.bookedCount - slot.heldCount),
+    remainingCapacity: slot.isBlocked ? 0 : Math.max(0, slot.totalCapacity - slot.bookedCount - slot.heldCount),
+    isBlocked: slot.isBlocked,
     basePriceInCents: slot.basePriceInCents,
     isPeak: slot.isPeak
   };
@@ -139,32 +168,17 @@ router.post('/bookings/hold-slot', async (request, response, next) => {
     const input = holdSchema.parse(request.body);
     const holdExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const ticketCount = input.tickets.reduce((total, ticket) => total + ticket.quantity, 0);
+    await releaseExpiredHolds();
 
     const booking = await prisma.$transaction(async (transaction) => {
-      const expiredHolds = await transaction.booking.findMany({
-        where: { paymentStatus: 'PENDING', holdExpiresAt: { lt: new Date() } },
-        select: { id: true, ticketItems: { select: { slotId: true } } }
-      });
-
-      for (const expiredHold of expiredHolds) {
-        const cancelled = await transaction.booking.updateMany({
-          where: { id: expiredHold.id, paymentStatus: 'PENDING' },
-          data: { paymentStatus: 'CANCELLED' }
-        });
-        if (cancelled.count !== 1) continue;
-
-        const counts = new Map<string, number>();
-        for (const ticket of expiredHold.ticketItems) counts.set(ticket.slotId, (counts.get(ticket.slotId) ?? 0) + 1);
-        for (const [slotId, count] of counts) {
-          await transaction.slot.update({ where: { id: slotId }, data: { heldCount: { decrement: count } } });
-        }
-      }
+      await transaction.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${input.slotId}, 0))`;
 
       const updated = await transaction.$executeRaw`
         UPDATE "Slot"
         SET "heldCount" = "heldCount" + ${ticketCount}
         WHERE "id" = ${input.slotId}
           AND "startsAt" > NOW()
+          AND "isBlocked" = false
           AND "bookedCount" + "heldCount" + ${ticketCount} <= "totalCapacity"
       `;
       if (updated !== 1) {

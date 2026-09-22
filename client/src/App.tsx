@@ -13,6 +13,7 @@ import {
   Eye,
   Loader2,
   MapPin,
+  Download,
   RotateCcw,
   ShieldCheck,
   Skull,
@@ -1095,11 +1096,11 @@ function BookingWidget() {
   );
 }
 
-type StudioPageName = 'home' | 'experiences' | 'visit' | 'guide' | 'faq' | 'contact';
+type StudioPageName = 'home' | 'experiences' | 'visit' | 'guide' | 'faq' | 'contact' | 'manage-booking' | 'admin';
 
 function getStudioPage(): StudioPageName {
   const route = window.location.hash.replace(/^#\/?/, '').split('?')[0];
-  return ['experiences', 'visit', 'guide', 'faq', 'contact'].includes(route) ? (route as StudioPageName) : 'home';
+  return ['experiences', 'visit', 'guide', 'faq', 'contact', 'manage-booking', 'admin'].includes(route) ? (route as StudioPageName) : 'home';
 }
 
 function StudioHeader({ open }: { open: () => void }) {
@@ -1128,6 +1129,8 @@ function StudioHeader({ open }: { open: () => void }) {
 }
 
 function StudioPage({ page, shows, open }: { page: Exclude<StudioPageName, 'home'>; shows: EnrichedShow[]; open: (show?: EnrichedShow) => void }) {
+  if (page === 'admin') return <AdminPage />;
+  if (page === 'manage-booking') return <ManageBookingPage />;
   const pageContent = {
     experiences: {
       eyebrow: 'Choose your room',
@@ -1260,6 +1263,44 @@ function PaymentForm({ onComplete, disabled }: { onComplete: () => Promise<void>
       </button>
     </form>
   );
+}
+
+function AdminPage() {
+  const [adminKey, setAdminKey] = useState('');
+  const [shows, setShows] = useState<any[]>([]);
+  const [slots, setSlots] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const load = async () => {
+    try {
+      setError(null);
+      const [nextShows, nextSlots, nextBookings] = await Promise.all([api.adminShows(adminKey), api.adminSlots(adminKey), api.adminBookings(adminKey, search)]);
+      setShows(nextShows); setSlots(nextSlots); setBookings(nextBookings);
+    } catch (err) { setError((err as Error).message); }
+  };
+  const exportBookings = async () => {
+    const blob = await api.adminExport(adminKey);
+    const url = URL.createObjectURL(blob); const link = document.createElement('a');
+    link.href = url; link.download = 'midnight-studio-bookings.csv'; link.click(); URL.revokeObjectURL(url);
+  };
+  return <main className="dungeon-shell min-h-screen px-6 pb-24 pt-32 text-white lg:px-12"><div className="mx-auto max-w-7xl">
+    <header className="flex flex-col justify-between gap-5 border-b border-white/10 pb-8 md:flex-row md:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[0.35em] text-ember">Operations room</p><h1 className="mt-4 font-display text-5xl">Studio control</h1></div><a className="text-xs uppercase tracking-widest text-white/50 hover:text-ember" href="#/">Return to site</a></header>
+    {!shows.length && <form className="mt-10 max-w-md border border-white/10 bg-black/20 p-6" onSubmit={(event) => { event.preventDefault(); void load(); }}><label className="text-xs uppercase tracking-widest text-white/50" htmlFor="admin-key">Admin key</label><input id="admin-key" className="booking-input mt-3" type="password" value={adminKey} onChange={(event) => setAdminKey(event.target.value)} required /><button className="ember-button mt-5 bg-ember px-5 py-3 text-xs font-bold uppercase tracking-widest text-obsidian" type="submit">Open dashboard</button></form>}
+    {error && <p className="mt-6 border border-fiery/40 bg-fiery/10 p-4 text-sm text-fiery" role="alert">{error}</p>}
+    {!!shows.length && <div className="mt-10 space-y-10">
+      <section aria-labelledby="admin-experiences"><div className="flex items-center justify-between"><h2 id="admin-experiences" className="font-display text-3xl">Experiences</h2><button className="text-xs uppercase tracking-widest text-ember" onClick={() => void load()}>Refresh</button></div><div className="mt-4 grid gap-3 lg:grid-cols-3">{shows.map((show) => <article className="border border-white/10 bg-black/20 p-5" key={show.id}><h3 className="font-display text-xl">{show.title}</h3><label className="mt-5 block text-[10px] uppercase tracking-widest text-white/40" htmlFor={`price-${show.id}`}>Base price (pence)</label><input id={`price-${show.id}`} className="booking-input mt-2" defaultValue={show.basePriceInCents} type="number" onBlur={(event) => void api.updateAdminShow(adminKey, show.id, { basePriceInCents: Number(event.target.value) })} /><p className="mt-4 text-xs text-white/45">{show._count?.slots ?? 0} slots configured</p></article>)}</div></section>
+      <section aria-labelledby="admin-slots"><h2 id="admin-slots" className="font-display text-3xl">Timeslot controls</h2><div className="mt-4 overflow-x-auto border border-white/10"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-black/30 text-[10px] uppercase tracking-widest text-white/45"><tr><th className="p-4">Experience</th><th className="p-4">Starts</th><th className="p-4">Capacity</th><th className="p-4">Status</th><th className="p-4">Action</th></tr></thead><tbody>{slots.slice(0, 60).map((slot) => <tr className="border-t border-white/10" key={slot.id}><td className="p-4">{slot.show?.title}</td><td className="p-4">{new Date(slot.startsAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</td><td className="p-4">{slot.bookedCount + slot.heldCount}/{slot.totalCapacity}</td><td className="p-4">{slot.isBlocked ? 'Blocked' : 'Open'}</td><td className="p-4"><button className="text-xs uppercase tracking-widest text-ember" onClick={() => api.updateAdminSlot(adminKey, slot.id, { isBlocked: !slot.isBlocked }).then(() => load())}>{slot.isBlocked ? 'Unblock' : 'Block'}</button></td></tr>)}</tbody></table></div></section>
+      <section aria-labelledby="admin-bookings"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h2 id="admin-bookings" className="font-display text-3xl">Bookings</h2><p className="mt-2 text-sm text-white/45">{bookings.length} results</p></div><div className="flex gap-2"><input className="booking-input max-w-xs" placeholder="Search reference or email" value={search} onChange={(event) => setSearch(event.target.value)} /><button className="border border-white/15 px-4 text-xs uppercase tracking-widest hover:border-ember" onClick={() => void load()}>Search</button><button aria-label="Export bookings CSV" className="border border-white/15 px-4 text-ember hover:border-ember" onClick={() => void exportBookings()}><Download size={16} /></button></div></div><div className="mt-4 overflow-x-auto border border-white/10"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-black/30 text-[10px] uppercase tracking-widest text-white/45"><tr><th className="p-4">Reference</th><th className="p-4">Guest</th><th className="p-4">Status</th><th className="p-4">Total</th><th className="p-4">Created</th></tr></thead><tbody>{bookings.map((booking) => <tr className="border-t border-white/10" key={booking.id}><td className="p-4 font-mono text-ember">{booking.bookingReference}</td><td className="p-4">{booking.customerName}<span className="block text-xs text-white/40">{booking.customerEmail}</span></td><td className="p-4">{booking.paymentStatus}</td><td className="p-4">£{(booking.totalPaidInCents / 100).toFixed(2)}</td><td className="p-4 text-white/50">{new Date(booking.createdAt).toLocaleDateString('en-GB')}</td></tr>)}</tbody></table></div></section>
+    </div>}
+  </div></main>;
+}
+
+function ManageBookingPage() {
+  const [reference, setReference] = useState(''); const [email, setEmail] = useState(''); const [booking, setBooking] = useState<any | null>(null); const [message, setMessage] = useState<string | null>(null);
+  async function lookup(event: React.FormEvent) { event.preventDefault(); try { setBooking(await api.lookupBooking(reference, email)); setMessage(null); } catch (err) { setMessage((err as Error).message); } }
+  async function cancel() { if (!booking || !window.confirm('Cancel this booking and request a refund?')) return; try { await api.cancelBooking(booking.id, email); setMessage('Booking cancelled. Any eligible refund has been initiated.'); } catch (err) { setMessage((err as Error).message); } }
+  return <main className="dungeon-shell min-h-screen px-6 pb-24 pt-36 text-white lg:px-12"><div className="mx-auto max-w-3xl"><a className="text-xs uppercase tracking-widest text-white/50 hover:text-ember" href="#/">Back to The Midnight Studio</a><h1 className="mt-8 font-display text-5xl">Manage your booking</h1><p className="mt-4 text-white/55">Use your booking reference and email address to view or cancel a reservation.</p><form className="mt-10 grid gap-4 border border-white/10 bg-black/20 p-6 sm:grid-cols-[1fr_1fr_auto] sm:items-end" onSubmit={lookup}><label className="text-xs uppercase tracking-widest text-white/50">Reference<input className="booking-input mt-2" value={reference} onChange={(event) => setReference(event.target.value)} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><button className="ember-button bg-ember px-5 py-4 text-xs font-bold uppercase tracking-widest text-obsidian" type="submit">Find booking</button></form>{message && <p className="mt-5 border border-ember/30 p-4 text-sm text-ember" role="status">{message}</p>}{booking && <article className="mt-8 border border-white/10 bg-black/20 p-6"><div className="flex flex-wrap justify-between gap-4"><div><p className="text-[10px] uppercase tracking-widest text-white/40">Reference</p><p className="mt-2 font-mono text-ember">{booking.bookingReference}</p></div><p className="text-sm uppercase tracking-widest text-white/60">{booking.paymentStatus}</p></div><p className="mt-6 text-sm text-white/60">{booking.ticketItems.length} tickets · £{(booking.totalPaidInCents / 100).toFixed(2)}</p>{booking.paymentStatus !== 'CANCELLED' && <button className="mt-7 border border-fiery/50 px-5 py-3 text-xs font-bold uppercase tracking-widest text-fiery hover:bg-fiery/10" onClick={() => void cancel()}>Cancel booking</button>}</article>}</div></main>;
 }
 
 function Portal() {
