@@ -37,6 +37,8 @@ Guest browser -> Vercel or Netlify (client)
 
 ### API deployment
 
+For the Render service, leave **Root Directory** blank (the repository root). The root `package.json` defines the `client`, `server`, and `shared/types` workspaces; setting Root Directory to `server` makes commands using `--workspace server` fail with `No workspaces found`.
+
 Render start command:
 
 ```powershell
