@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Flame, Users, Sparkles } from 'lucide-react';
-import type { Slot } from '@soma-dungeon/types';
+import type { Slot } from '@the-midnight-studio/types';
 
 export interface TimeslotPickerProps {
   slots: Slot[];

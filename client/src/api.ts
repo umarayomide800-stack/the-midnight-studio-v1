@@ -9,7 +9,7 @@ import type {
   CheckoutIntentResponse,
   TestConfirmResponse,
   ApiResponse
-} from '@soma-dungeon/types';
+} from '@the-midnight-studio/types';
 
 const configuredApiOrigin = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? '';
 const API_BASE = `${configuredApiOrigin}/api/v1`;

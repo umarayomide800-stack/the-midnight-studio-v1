@@ -1,5 +1,5 @@
 {
-  "name": "@soma-dungeon/client",
+  "name": "@the-midnight-studio/client",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@soma-dungeon/types": "*",
+    "@the-midnight-studio/types": "*",
     "framer-motion": "^12.23.6",
     "lucide-react": "^0.468.0",
     "react": "^19.1.0",

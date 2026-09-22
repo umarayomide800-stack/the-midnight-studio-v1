@@ -186,7 +186,7 @@ router.post('/bookings/hold-slot', async (request, response, next) => {
       const totalPaidInCents = ticketItems.reduce((total, ticket) => total + ticket.priceInCents, 0);
       const created = await transaction.booking.create({
         data: {
-          bookingReference: `SOMA-${randomBytes(4).toString('hex').toUpperCase()}`,
+          bookingReference: `TMS-${randomBytes(4).toString('hex').toUpperCase()}`,
           customerName: input.customerName,
           customerEmail: input.customerEmail,
           totalPaidInCents,

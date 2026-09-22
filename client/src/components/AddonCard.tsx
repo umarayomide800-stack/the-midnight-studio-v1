@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, Check, Sparkles, Image as ImageIcon, Wine, Shield } from 'lucide-react';
-import type { AddOn } from '@soma-dungeon/types';
+import type { AddOn } from '@the-midnight-studio/types';
 
 export interface AddonCardProps {
   addon: AddOn & {

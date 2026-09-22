@@ -1,6 +1,6 @@
-# Soma Dungeon Deployment Playbook
+# The Midnight Studio Deployment Playbook
 
-This document describes a production topology for the Soma Dungeon guest portal, booking API, PostgreSQL data store, Redis lock layer, Stripe payments, and Resend email.
+This document describes a production topology for The Midnight Studio guest portal, booking API, PostgreSQL data store, Redis lock layer, Stripe payments, and Resend email.
 
 ## 1. Production architecture
 

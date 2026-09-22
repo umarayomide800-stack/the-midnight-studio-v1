@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
-import type { AddOn, Show as ApiShow, Slot, TestConfirmResponse, TicketCategory } from '@soma-dungeon/types';
+import type { AddOn, Show as ApiShow, Slot, TestConfirmResponse, TicketCategory } from '@the-midnight-studio/types';
 
 export interface EnrichedShow extends ApiShow {
   eyebrow: string;

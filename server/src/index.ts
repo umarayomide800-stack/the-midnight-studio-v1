@@ -2,7 +2,7 @@ import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
-import type { HealthResponse } from '@soma-dungeon/types';
+import type { HealthResponse } from '@the-midnight-studio/types';
 import v1Router from './routes/v1.js';
 import paymentsRouter, { stripeWebhook } from './routes/payments.js';
 import { errorHandler } from './middleware/error.js';
@@ -21,7 +21,7 @@ app.use('/api/v1', paymentsRouter);
 app.get('/api/health', (_request, response) => {
   const payload: HealthResponse = {
     status: 'ok',
-    service: 'soma-dungeon-api',
+    service: 'the-midnight-studio-api',
     timestamp: new Date().toISOString()
   };
 
@@ -31,5 +31,5 @@ app.get('/api/health', (_request, response) => {
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Soma Dungeon API listening on http://localhost:${port}`);
+  console.log(`The Midnight Studio API listening on http://localhost:${port}`);
 });

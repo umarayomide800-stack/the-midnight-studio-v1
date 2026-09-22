@@ -95,7 +95,7 @@ export interface TestConfirmResponse {
 
 export interface HealthResponse {
   status: 'ok';
-  service: 'soma-dungeon-api';
+  service: 'the-midnight-studio-api';
   timestamp: string;
 }
 
