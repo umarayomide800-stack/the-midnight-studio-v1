@@ -8,25 +8,18 @@ import {
   CheckCircle2,
   ChevronLeft,
   Clock3,
-  Copy,
-  ExternalLink,
   Eye,
   Loader2,
   MapPin,
-  QrCode as QrIcon,
   RotateCcw,
   ShieldCheck,
   Skull,
   Sparkles,
-  Ticket,
   X
 } from 'lucide-react';
-import QRCode from 'qrcode';
-import { createContext, lazy, Suspense, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
 import type { AddOn, Show as ApiShow, Slot, TestConfirmResponse, TicketCategory } from '@soma-dungeon/types';
-
-const ValidatorApp = lazy(() => import('./ValidatorApp'));
 
 export interface EnrichedShow extends ApiShow {
   eyebrow: string;
@@ -155,7 +148,6 @@ type BookingState = {
   holdExpiresAt: string | null;
   holdSeconds: number;
   confirmedTicket: TestConfirmResponse | null;
-  qrDataUrl: string | null;
 };
 
 type BookingContextType = {
@@ -226,8 +218,7 @@ function BookingProvider({ children }: { children: ReactNode }) {
     bookingReference: null,
     holdExpiresAt: null,
     holdSeconds: 600,
-    confirmedTicket: null,
-    qrDataUrl: null
+    confirmedTicket: null
   });
 
   const open = (show = shows[0] ?? defaultFallbackShows[0]) => {
@@ -249,8 +240,7 @@ function BookingProvider({ children }: { children: ReactNode }) {
       bookingReference: null,
       holdExpiresAt: null,
       holdSeconds: 600,
-      confirmedTicket: null,
-      qrDataUrl: null
+      confirmedTicket: null
     }));
   };
 
@@ -269,8 +259,7 @@ function BookingProvider({ children }: { children: ReactNode }) {
       bookingReference: null,
       holdExpiresAt: null,
       holdSeconds: 600,
-      confirmedTicket: null,
-      qrDataUrl: null
+      confirmedTicket: null
     }));
   };
 
@@ -315,7 +304,6 @@ function BookingWidget() {
   const [holding, setHolding] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   // Generate 7 selectable calendar dates starting from today
   const dates = Array.from({ length: 7 }, (_, index) => {
@@ -381,6 +369,9 @@ function BookingWidget() {
     .toString()
     .padStart(2, '0')}:${(state.holdSeconds % 60).toString().padStart(2, '0')}`;
 
+  const ticketLines = ticketCategories.filter((category) => (state.tickets[category.id] ?? 0) > 0);
+  const addOnLines = addOns.filter((item) => (state.addons[item.id] ?? 0) > 0);
+
   // Handle slot hold reservation (Step 3 -> Step 4)
   async function handleHoldTickets() {
     if (!state.slot) return;
@@ -445,22 +436,10 @@ function BookingWidget() {
         addOns: addOnPayload
       });
 
-      // Confirm test booking to immediately issue QR ticket
       const confirmed = await api.confirmTestBooking(state.bookingId);
 
-      // Render high-res QR code image data URL
-      const qrDataUrl = await QRCode.toDataURL(confirmed.qrCodePayload, {
-        width: 320,
-        margin: 2,
-        color: {
-          dark: '#0d0d0e',
-          light: '#ffffff'
-        }
-      });
-
       update({
-        confirmedTicket: confirmed,
-        qrDataUrl
+        confirmedTicket: confirmed
       });
     } catch (err: any) {
       setActionError(err.message || 'Payment processing failed. Please try again.');
@@ -483,9 +462,9 @@ function BookingWidget() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 sm:px-8">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-ember">Soma Dungeon / Reservation</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-ember">The Midnight Studio / Private booking</p>
               <h2 className="mt-2 font-display text-xl sm:text-2xl">
-                {state.confirmedTicket ? 'Descent Confirmed' : 'Book Your Descent'}
+                {state.confirmedTicket ? 'Entry confirmed' : 'Book your night'}
               </h2>
             </div>
             <button
@@ -497,7 +476,7 @@ function BookingWidget() {
             </button>
           </div>
 
-          {/* If confirmed, show the ticket receipt & QR Code */}
+          {/* If confirmed, show the final ticket receipt */}
           {state.confirmedTicket ? (
             <div className="p-6 sm:p-10">
               <div className="mx-auto max-w-xl text-center">
@@ -505,80 +484,80 @@ function BookingWidget() {
                   <CheckCircle2 size={32} />
                 </div>
                 <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ember">Official Entry Pass</p>
-                <h3 className="mt-2 font-display text-3xl sm:text-4xl">You Are Expected.</h3>
+                <h3 className="mt-2 font-display text-3xl sm:text-4xl">You are expected.</h3>
                 <p className="mt-2 text-sm text-white/60">
-                  Present this QR ticket at Gate 01 on arrival. A copy has been logged to our entry system.
+                  Your booking is confirmed. Keep your reference code ready for arrival and entry.
                 </p>
 
-                {/* QR Code Presentation Box */}
-                <div className="relative mx-auto mt-8 max-w-xs border-2 border-ember/60 bg-white p-5 shadow-ember">
-                  {state.qrDataUrl ? (
-                    <img src={state.qrDataUrl} alt="Entry QR Code" className="mx-auto aspect-square w-full" />
-                  ) : (
-                    <div className="grid aspect-square place-items-center bg-white text-black">
-                      <QrIcon size={64} />
+                <div className="mt-6 border border-ember/40 bg-ember/5 p-4 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Booking reference</p>
+                  <p className="mt-2 font-mono text-lg text-white">{state.confirmedTicket.bookingReference}</p>
+                </div>
+
+                <div className="mt-6 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+                  <div className="border border-white/10 bg-white/[0.02] p-5 text-left text-sm space-y-3">
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/50">Guest</span>
+                      <strong className="text-white">{state.confirmedTicket.customerName}</strong>
                     </div>
-                  )}
-                  <p className="mt-3 font-mono text-xs font-bold uppercase tracking-wider text-obsidian">
-                    {state.confirmedTicket.bookingReference}
-                  </p>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/50">Experience</span>
+                      <strong className="text-white">{state.show.title}</strong>
+                    </div>
+                    <div className="flex justify-between border-b border-white/10 pb-2">
+                      <span className="text-white/50">Timeslot</span>
+                      <strong className="text-white">
+                        {state.confirmedTicket.slot
+                          ? new Date(state.confirmedTicket.slot.startsAt).toLocaleString('en-GB', {
+                              dateStyle: 'medium',
+                              timeStyle: 'short'
+                            })
+                          : `${state.date}`}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/50">Passes</span>
+                      <strong className="text-ember">
+                        {state.confirmedTicket.ticketCount} Tickets ({state.confirmedTicket.ticketCategories.join(', ')})
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="border border-ember/30 bg-[#0f1013] p-5 text-left">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Payment summary</p>
+                    <div className="mt-4 space-y-2 text-sm">
+                      {ticketLines.map((category) => {
+                        const qty = state.tickets[category.id] ?? 0;
+                        const price = getCategoryPrice(category);
+                        return (
+                          <div className="flex justify-between text-white/70" key={category.id}>
+                            <span>
+                              {category.name} × {qty}
+                            </span>
+                            <span>£{price * qty}</span>
+                          </div>
+                        );
+                      })}
+                      {addOnLines.map((item) => {
+                        const qty = state.addons[item.id] ?? 0;
+                        return (
+                          <div className="flex justify-between text-white/70" key={item.id}>
+                            <span>
+                              {item.title} × {qty}
+                            </span>
+                            <span>£{(item.priceInCents / 100) * qty}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 border-t border-white/10 pt-3 flex items-center justify-between text-base font-bold">
+                      <span className="text-white/60">Total</span>
+                      <span className="text-ember">£{grandTotal}</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Ticket Details */}
-                <div className="mt-6 border border-white/10 bg-white/[0.02] p-5 text-left text-sm space-y-2">
-                  <div className="flex justify-between border-b border-white/10 pb-2">
-                    <span className="text-white/50">Guest</span>
-                    <strong className="text-white">{state.confirmedTicket.customerName}</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-white/10 pb-2">
-                    <span className="text-white/50">Experience</span>
-                    <strong className="text-white">{state.show.title}</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-white/10 pb-2">
-                    <span className="text-white/50">Timeslot</span>
-                    <strong className="text-white">
-                      {state.confirmedTicket.slot
-                        ? new Date(state.confirmedTicket.slot.startsAt).toLocaleString('en-GB', {
-                            dateStyle: 'medium',
-                            timeStyle: 'short'
-                          })
-                        : `${state.date}`}
-                    </strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/50">Passes</span>
-                    <strong className="text-ember">
-                      {state.confirmedTicket.ticketCount} Tickets ({state.confirmedTicket.ticketCategories.join(', ')})
-                    </strong>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                  <button
-                    className="inline-flex items-center justify-center gap-2 border border-white/20 px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:border-ember hover:text-ember"
-                    onClick={() => {
-                      if (state.confirmedTicket?.qrCodePayload) {
-                        void navigator.clipboard.writeText(state.confirmedTicket.qrCodePayload);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      }
-                    }}
-                  >
-                    <Copy size={15} />
-                    {copied ? 'Copied Payload!' : 'Copy QR Payload'}
-                  </button>
-
-                  <a
-                    className="ember-button inline-flex items-center justify-center gap-2 bg-crimson px-6 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white"
-                    href="/admin/validator"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink size={15} />
-                    Test in Staff Validator
-                  </a>
-
+                <div className="mt-8 flex justify-center">
                   <button
                     className="inline-flex items-center justify-center gap-2 border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white/50 hover:text-white"
                     onClick={resetBooking}
@@ -619,9 +598,9 @@ function BookingWidget() {
                 {state.step === 1 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">
-                      Step 1 / Choose your story
+                      Step 1 / Choose the room
                     </p>
-                    <h3 className="mt-3 font-display text-3xl">Where will you go?</h3>
+                    <h3 className="mt-3 font-display text-3xl">Where are you entering?</h3>
 
                     <div className="mt-6 grid gap-3 sm:grid-cols-3">
                       {shows.map((show) => (
@@ -668,7 +647,7 @@ function BookingWidget() {
 
                     <div className="mt-8 flex justify-end">
                       <button
-                        className="ember-button bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="ember-button w-full bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
                         disabled={!state.date}
                         onClick={() => update({ step: 2 })}
                       >
@@ -682,9 +661,9 @@ function BookingWidget() {
                 {state.step === 2 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">
-                      Step 2 / Choose your time
+                      Step 2 / Select your hour
                     </p>
-                    <h3 className="mt-3 font-display text-3xl">When do you enter?</h3>
+                    <h3 className="mt-3 font-display text-3xl">When does the door open?</h3>
                     <p className="mt-3 text-sm text-white/50">
                       {state.show.title} ·{' '}
                       {new Date(`${state.date}T12:00:00`).toLocaleDateString('en-GB', {
@@ -764,7 +743,7 @@ function BookingWidget() {
                       </div>
                     )}
 
-                    <div className="mt-8 flex justify-between">
+                    <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         className="text-xs uppercase tracking-widest text-white/50 hover:text-ember"
                         onClick={() => update({ step: 1 })}
@@ -772,7 +751,7 @@ function BookingWidget() {
                         Back
                       </button>
                       <button
-                        className="ember-button bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] disabled:opacity-40"
+                        className="ember-button w-full bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] disabled:opacity-40 sm:w-auto"
                         disabled={!state.slot}
                         onClick={() => update({ step: 3 })}
                       >
@@ -786,7 +765,7 @@ function BookingWidget() {
                 {state.step === 3 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">Step 3 / Your party</p>
-                    <h3 className="mt-3 font-display text-3xl">Who is coming down?</h3>
+                    <h3 className="mt-3 font-display text-3xl">Who is joining the descent?</h3>
 
                     <div className="mt-7 space-y-3">
                       {ticketCategories.map((category) => {
@@ -838,7 +817,7 @@ function BookingWidget() {
                       })}
                     </div>
 
-                    <div className="mt-8 flex justify-between">
+                    <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         className="text-xs uppercase tracking-widest text-white/50 hover:text-ember"
                         onClick={() => update({ step: 2 })}
@@ -846,7 +825,7 @@ function BookingWidget() {
                         Back
                       </button>
                       <button
-                        className="ember-button bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] disabled:opacity-40 inline-flex items-center"
+                        className="ember-button w-full bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] disabled:opacity-40 inline-flex items-center justify-center sm:w-auto"
                         disabled={totalTickets === 0 || holding}
                         onClick={handleHoldTickets}
                       >
@@ -869,9 +848,9 @@ function BookingWidget() {
                 {state.step === 4 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">
-                      Step 4 / Make it memorable
+                      Step 4 / Optional keepsakes
                     </p>
-                    <h3 className="mt-3 font-display text-3xl">Take something back.</h3>
+                    <h3 className="mt-3 font-display text-3xl">Take a keepsake before you leave.</h3>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-3">
                       {addOns.map((item) => {
@@ -919,7 +898,7 @@ function BookingWidget() {
                       })}
                     </div>
 
-                    <div className="mt-8 flex justify-between">
+                    <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         className="text-xs uppercase tracking-widest text-white/50 hover:text-ember"
                         onClick={() => update({ step: 3 })}
@@ -927,7 +906,7 @@ function BookingWidget() {
                         Back
                       </button>
                       <button
-                        className="ember-button bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em]"
+                        className="ember-button w-full bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] sm:w-auto"
                         onClick={() => update({ step: 5 })}
                       >
                         Checkout <ArrowRight className="ml-2 inline" size={15} />
@@ -939,7 +918,7 @@ function BookingWidget() {
                 {/* STEP 5: Guest Details & Checkout */}
                 {state.step === 5 && (
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">Step 5 / Secure checkout</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">Step 5 / Final details</p>
                     <h3 className="mt-3 font-display text-3xl">Almost inside.</h3>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -967,40 +946,57 @@ function BookingWidget() {
                     </div>
 
                     {/* Order summary breakdown */}
-                    <div className="mt-5 border border-white/10 bg-black/30 p-5">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Review order</p>
-                      <div className="mt-3 space-y-2 text-xs">
-                        {ticketCategories
-                          .filter((c) => (state.tickets[c.id] ?? 0) > 0)
-                          .map((c) => {
-                            const qty = state.tickets[c.id];
-                            const price = getCategoryPrice(c);
+                    <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+                      <div className="border border-white/10 bg-black/30 p-5">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Review order</p>
+                        <div className="mt-3 space-y-2 text-xs">
+                          {ticketLines.map((category) => {
+                            const qty = state.tickets[category.id] ?? 0;
+                            const price = getCategoryPrice(category);
                             return (
-                              <div className="flex justify-between text-white/70" key={c.id}>
+                              <div className="flex justify-between text-white/70" key={category.id}>
                                 <span>
-                                  {c.name} × {qty}
+                                  {category.name} × {qty}
                                 </span>
                                 <span>£{price * qty}</span>
                               </div>
                             );
                           })}
-                        {addOns
-                          .filter((a) => (state.addons[a.id] ?? 0) > 0)
-                          .map((a) => {
-                            const qty = state.addons[a.id];
-                            const price = a.priceInCents / 100;
+                          {addOnLines.map((item) => {
+                            const qty = state.addons[item.id] ?? 0;
+                            const price = item.priceInCents / 100;
                             return (
-                              <div className="flex justify-between text-white/70" key={a.id}>
+                              <div className="flex justify-between text-white/70" key={item.id}>
                                 <span>
-                                  {a.title} × {qty}
+                                  {item.title} × {qty}
                                 </span>
                                 <span>£{price * qty}</span>
                               </div>
                             );
                           })}
-                        <div className="border-t border-white/10 pt-2 flex justify-between font-bold text-white text-sm">
-                          <span>Total due</span>
-                          <span className="text-ember">£{grandTotal}</span>
+                          {ticketLines.length === 0 && addOnLines.length === 0 && (
+                            <div className="text-white/45">No items selected yet.</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="border border-ember/30 bg-[#0f1013] p-5">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Session</p>
+                        <div className="mt-4 space-y-3 text-sm text-white/70">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">Experience</div>
+                            <div className="mt-1 font-display text-xl text-white">{state.show.title}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">Time</div>
+                            <div className="mt-1">
+                              {state.slot && new Date(state.slot.startsAt).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                          <div className="border-t border-white/10 pt-3 flex justify-between items-center">
+                            <span className="text-white/60">Total due</span>
+                            <span className="text-lg font-bold text-ember">£{grandTotal}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1010,16 +1006,15 @@ function BookingWidget() {
                       <div className="flex items-center gap-3">
                         <ShieldCheck size={20} className="text-ember" />
                         <div>
-                          <p className="text-xs font-bold text-white uppercase tracking-wider">Payment Verification</p>
+                          <p className="text-xs font-bold text-white uppercase tracking-wider">Secure reservation</p>
                           <p className="text-[11px] text-white/50">
-                            Test mode enabled. Clicking &ldquo;Confirm & Pay&rdquo; will reserve your booking, create a
-                            verified entry QR pass, and update database slot capacity in real time.
+                            Test mode enabled. Your hold will be confirmed in a secure checkout and the timeslot capacity will update automatically.
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-8 flex justify-between">
+                    <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <button
                         className="text-xs uppercase tracking-widest text-white/50 hover:text-ember"
                         onClick={() => update({ step: 4 })}
@@ -1027,7 +1022,7 @@ function BookingWidget() {
                         Back
                       </button>
                       <button
-                        className="ember-button bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-obsidian inline-flex items-center disabled:opacity-40"
+                        className="ember-button w-full bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-obsidian inline-flex items-center justify-center disabled:opacity-40 sm:w-auto"
                         disabled={checkingOut || !state.guestName.trim() || !state.guestEmail.trim()}
                         onClick={handleCheckout}
                       >
@@ -1102,25 +1097,21 @@ function Portal() {
   const { open, shows } = useBooking();
 
   return (
-    <main className="min-h-screen overflow-hidden bg-obsidian text-white">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-obsidian/75 backdrop-blur-xl">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-12">
-          <a className="group flex items-center gap-3" href="#top" aria-label="Soma Dungeon home">
-            <span className="grid h-9 w-9 place-items-center border border-ember/70 text-ember transition group-hover:bg-ember group-hover:text-obsidian">
+    <main className="dungeon-shell min-h-screen overflow-hidden text-white">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
+          <a className="group flex items-center gap-3" href="#top" aria-label="The Midnight Studio home">
+            <span className="grid h-9 w-9 place-items-center border border-ember/70 bg-[#0c0f13] text-ember transition group-hover:bg-ember group-hover:text-obsidian">
               <Sparkles size={16} />
             </span>
-            <span className="font-display text-sm tracking-[0.28em]">SOMA DUNGEON</span>
+            <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
           </a>
-          <nav className="hidden items-center gap-8 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/55 md:flex">
+          <nav className="hidden items-center gap-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
             <a className="transition hover:text-ember" href="#experiences">
               Experiences
             </a>
             <a className="transition hover:text-ember" href="#visit">
               The descent
-            </a>
-            <a className="transition hover:text-ember flex items-center gap-1.5" href="/admin/validator">
-              <Ticket size={13} />
-              Staff Scanner
             </a>
           </nav>
           <button
@@ -1136,28 +1127,28 @@ function Portal() {
         <div className="hero-image absolute inset-0" />
         <div className="hero-vignette absolute inset-0" />
         <div className="stone-noise absolute inset-0 opacity-30" />
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-12">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-3xl">
             <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">
               <span className="h-px w-10 bg-ember" /> Beneath the old quarter
             </div>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.9] tracking-tight text-white sm:text-7xl lg:text-[7.4rem]">
-              Come closer.
+            <h1 className="max-w-4xl font-display text-4xl leading-[0.9] tracking-tight text-white sm:text-6xl lg:text-[7.4rem]">
+              Enter the room.
               <br />
-              <span className="text-ember">Regret everything.</span>
+              <span className="text-ember">Stay until it remembers you.</span>
             </h1>
             <p className="mt-8 max-w-xl text-base leading-7 text-white/65 sm:text-lg">
-              A live horror experience built in the bones of the city. Three stories. One locked door. No audience sits safely in the dark.
+              Three live horror experiences built in the bones of the city. One locked door. No one leaves unchanged.
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-4">
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
               <button
-                className="ember-button inline-flex items-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]"
+                className="ember-button inline-flex items-center justify-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] sm:w-auto w-full"
                 onClick={() => open()}
               >
                 Book tickets now <ArrowRight size={16} />
               </button>
               <a
-                className="inline-flex items-center gap-2 px-3 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/65 transition hover:text-ember"
+                className="inline-flex items-center justify-center gap-2 px-3 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/65 transition hover:text-ember sm:justify-start"
                 href="#experiences"
               >
                 Explore the stories <ArrowDown size={16} />
@@ -1188,15 +1179,15 @@ function Portal() {
             className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end"
           >
             <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Choose your descent</p>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Choose your room</p>
               <h2 className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
                 Three ways to lose
                 <br />
-                <span className="text-ember">your way home.</span>
+                <span className="text-ember">your way back out.</span>
               </h2>
             </div>
             <p className="max-w-xs text-sm leading-6 text-white/45">
-              Every experience is actor-led, intimate, and designed to make the walls feel a little too close.
+              Each experience is intimate, immersive, and designed to make the walls feel a little too close.
             </p>
           </motion.div>
 
@@ -1210,7 +1201,7 @@ function Portal() {
                   ...fadeUp,
                   visible: { ...fadeUp.visible, transition: { delay: index * 0.1, duration: 0.7 } }
                 }}
-                className="show-card group"
+                className="show-card dungeon-card group"
                 key={show.slug}
               >
                 <button
@@ -1261,11 +1252,11 @@ function Portal() {
       <section id="visit" className="border-t border-white/10 bg-[#111213] px-6 py-20 lg:px-12 lg:py-28">
         <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">Your descent begins here</p>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">Your night begins here</p>
             <h2 className="max-w-2xl font-display text-4xl leading-tight sm:text-6xl">
-              Bring your bravest
+              Bring the ones who
               <br />
-              <span className="text-fiery">friends.</span>
+              <span className="text-fiery">cannot leave quietly.</span>
             </h2>
             <div className="mt-8 flex flex-wrap gap-7 text-sm text-white/55">
               <span className="flex items-center gap-2">
@@ -1390,13 +1381,6 @@ function Portal() {
 }
 
 function App() {
-  if (window.location.pathname === '/admin/validator') {
-    return (
-      <Suspense fallback={<div className="min-h-screen bg-obsidian" />}>
-        <ValidatorApp />
-      </Suspense>
-    );
-  }
   return (
     <BookingProvider>
       <Portal />

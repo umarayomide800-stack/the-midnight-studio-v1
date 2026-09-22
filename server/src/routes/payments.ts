@@ -1,6 +1,5 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import { Router, type Request, type Response, type NextFunction } from 'express';
-import QRCode from 'qrcode';
 import Stripe from 'stripe';
 import { Resend } from 'resend';
 import { z } from 'zod';
@@ -17,8 +16,6 @@ const checkoutSchema = z.object({
   customerEmail: z.string().email().max(320),
   addOns: z.array(z.object({ addOnId: z.string().min(1), quantity: z.number().int().min(1).max(20) })).max(10).default([])
 });
-
-const verifySchema = z.object({ qrHash: z.string().min(10).max(300) });
 
 const envelope = <T>(data: T) => ({ success: true, data });
 
@@ -105,15 +102,12 @@ router.post('/checkout/test-confirm', async (request, response, next) => {
         }
       });
       if (!booking) throw new ApiError(404, 'Booking not found.', 'BOOKING_NOT_FOUND');
-      if (booking.paymentStatus === 'CONFIRMED' && booking.qrCodePayload) return booking;
+      if (booking.paymentStatus === 'CONFIRMED') return booking;
       if (booking.paymentStatus !== 'PENDING') throw new ApiError(409, 'Booking is no longer pending.', 'PAYMENT_MISMATCH');
-
-      const qrCodePayload = booking.qrCodePayload ?? `SOMA-${randomBytes(24).toString('base64url')}`;
-      const qrCodeTokenHash = createHash('sha256').update(qrCodePayload).digest('hex');
 
       const updated = await transaction.booking.update({
         where: { id: booking.id },
-        data: { paymentStatus: 'CONFIRMED', holdExpiresAt: null, qrCodePayload, qrCodeTokenHash },
+        data: { paymentStatus: 'CONFIRMED', holdExpiresAt: null },
         include: {
           ticketItems: {
             include: { ticketCategory: { select: { name: true } }, slot: { select: { startsAt: true, endsAt: true } } }
@@ -135,7 +129,6 @@ router.post('/checkout/test-confirm', async (request, response, next) => {
       bookingReference: confirmed.bookingReference,
       customerName: confirmed.customerName,
       customerEmail: confirmed.customerEmail,
-      qrCodePayload: confirmed.qrCodePayload,
       totalPaidInCents: confirmed.totalPaidInCents,
       ticketCount: confirmed.ticketItems.length,
       ticketCategories: confirmed.ticketItems.map((t) => t.ticketCategory.name),
@@ -160,15 +153,13 @@ export async function stripeWebhook(request: Request, response: Response, next: 
       const confirmed = await prisma.$transaction(async (transaction) => {
         const booking = await transaction.booking.findUnique({ where: { id: bookingId }, include: { ticketItems: true } });
         if (!booking) throw new ApiError(404, 'Booking not found.', 'BOOKING_NOT_FOUND');
-        if (booking.paymentStatus === 'CONFIRMED' && booking.qrCodePayload) return booking;
+        if (booking.paymentStatus === 'CONFIRMED') return booking;
         if (booking.paymentStatus !== 'PENDING' || booking.stripePaymentIntentId !== paymentIntent.id || booking.totalPaidInCents !== paymentIntent.amount) {
           throw new ApiError(409, 'Payment does not match the booking hold.', 'PAYMENT_MISMATCH');
         }
-        const qrCodePayload = booking.qrCodePayload ?? `SOMA-${randomBytes(32).toString('base64url')}`;
-        const qrCodeTokenHash = createHash('sha256').update(qrCodePayload).digest('hex');
         const confirmed = await transaction.booking.update({
           where: { id: booking.id },
-          data: { paymentStatus: 'CONFIRMED', holdExpiresAt: null, qrCodePayload, qrCodeTokenHash },
+          data: { paymentStatus: 'CONFIRMED', holdExpiresAt: null },
           include: { ticketItems: true }
         });
         const ticketsBySlot = new Map<string, number>();
@@ -179,7 +170,7 @@ export async function stripeWebhook(request: Request, response: Response, next: 
         return confirmed;
       });
 
-      await sendReceipt(confirmed.customerEmail, confirmed.bookingReference, confirmed.qrCodePayload!);
+      await sendReceipt(confirmed.customerEmail, confirmed.bookingReference);
     }
 
     response.json({ received: true });
@@ -188,68 +179,16 @@ export async function stripeWebhook(request: Request, response: Response, next: 
   }
 }
 
-async function verifyTicket(qrHash: string) {
-  const tokenHash = createHash('sha256').update(qrHash).digest('hex');
-  const booking = await prisma.booking.findUnique({
-    where: { qrCodeTokenHash: tokenHash },
-    include: {
-      ticketItems: {
-        include: { ticketCategory: { select: { name: true } }, slot: { select: { startsAt: true, endsAt: true } } }
-      }
-    }
-  });
-  if (!booking) throw new ApiError(404, 'Ticket unpaid or expired.', 'INVALID_QR_CODE');
-  if (booking.paymentStatus !== 'CONFIRMED') throw new ApiError(409, 'Ticket unpaid or expired.', 'PAYMENT_NOT_CONFIRMED');
-
-  const previouslyScanned = booking.ticketItems.find((ticket) => ticket.isScanned);
-  if (previouslyScanned) {
-    throw new ApiError(409, `Ticket already scanned at ${previouslyScanned.scannedAt?.toISOString() ?? 'an earlier time'}.`, 'TICKET_ALREADY_SCANNED');
-  }
-
-  const scannedAt = new Date();
-  const scanned = await prisma.ticketItem.updateMany({ where: { bookingId: booking.id, isScanned: false }, data: { isScanned: true, scannedAt } });
-  if (scanned.count === 0) throw new ApiError(409, `Ticket already scanned at ${scannedAt.toISOString()}.`, 'TICKET_ALREADY_SCANNED');
-
-  return {
-    bookingReference: booking.bookingReference,
-    customerName: booking.customerName,
-    paymentStatus: booking.paymentStatus,
-    scannedTicketCount: scanned.count,
-    ticketCategories: booking.ticketItems.map((ticket) => ticket.ticketCategory.name),
-    slot: booking.ticketItems[0]?.slot,
-    scannedAt: scannedAt.toISOString()
-  };
-}
-
-router.post('/tickets/verify', async (request, response, next) => {
-  try {
-    const { qrHash } = verifySchema.parse(request.body);
-    response.json(envelope(await verifyTicket(qrHash)));
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/tickets/verify/:qrHash', async (request, response, next) => {
-  try {
-    const { qrHash } = verifySchema.parse(request.params);
-    response.json(envelope(await verifyTicket(qrHash)));
-  } catch (error) {
-    next(error);
-  }
-});
-
-async function sendReceipt(email: string, bookingReference: string, qrPayload: string) {
+async function sendReceipt(email: string, bookingReference: string) {
   if (!resend || !process.env.EMAIL_FROM) {
     console.warn('Receipt email skipped because Resend is not configured.');
     return;
   }
-  const qrDataUrl = await QRCode.toDataURL(qrPayload);
   const result = await resend.emails.send({
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: `Soma Dungeon ticket ${bookingReference}`,
-    html: `<p>Your Soma Dungeon booking is confirmed.</p><p>Booking reference: <strong>${bookingReference}</strong></p><img alt="Ticket QR code" src="${qrDataUrl}" />`
+    subject: `The Midnight Studio ticket ${bookingReference}`,
+    html: `<p>Your The Midnight Studio booking is confirmed.</p><p>Booking reference: <strong>${bookingReference}</strong></p>`
   });
   if (result.error) console.error('Receipt email failed', result.error);
 }

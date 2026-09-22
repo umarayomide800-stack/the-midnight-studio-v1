@@ -42,17 +42,15 @@ const shows = [
 ];
 
 const ticketCategories = [
-  { name: 'Adult', priceMultiplier: 1, description: 'Standard admission for guests aged 16 and over.' },
-  { name: 'Child', priceMultiplier: 0.75, description: 'Reduced admission for eligible younger guests.' },
-  { name: 'VIP FastPass', fixedPriceInCents: 5200, description: 'Priority entry with a complimentary keepsake.' },
-  { name: 'Group', priceMultiplier: 0.85, description: 'Reduced rate for groups of 10 or more.' },
-  { name: 'Student', priceMultiplier: 0.8, description: 'Discounted admission with valid student identification.' }
+  { name: '1 Hour', fixedPriceInCents: 10000, description: 'One hour experience ticket.' },
+  { name: '2 Hours', fixedPriceInCents: 15000, description: 'Two hour experience ticket.' },
+  { name: '3 Hours', fixedPriceInCents: 25000, description: 'Three hour experience ticket.' }
 ];
 
 const addOns = [
-  { title: 'Souvenir Photo', description: 'A printed photo from your descent.', priceInCents: 1200, inventoryStock: 500, imageUrl: '/images/souvenir-photo.jpg' },
-  { title: 'Tavern Drink Voucher', description: 'One non-alcoholic drink at the dungeon tavern.', priceInCents: 800, inventoryStock: 1000, imageUrl: '/images/tavern-drink.jpg' },
-  { title: 'Soma Keepsake Pin', description: 'A limited enamel pin bearing the Soma mark.', priceInCents: 1000, inventoryStock: 250, imageUrl: '/images/keepsake-pin.jpg' }
+  { title: 'Basic Package', description: 'Basic package', priceInCents: 10000, inventoryStock: 500, imageUrl: '/images/basic-package.jpg' },
+  { title: 'Standard Package', description: 'Standard package', priceInCents: 25000, inventoryStock: 500, imageUrl: '/images/standard-package.jpg' },
+  { title: 'Exclusive Package', description: 'Exclusive package', priceInCents: 30000, inventoryStock: 250, imageUrl: '/images/exclusive-package.jpg' }
 ];
 
 async function main() {

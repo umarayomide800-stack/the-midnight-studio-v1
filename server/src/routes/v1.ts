@@ -190,7 +190,6 @@ router.post('/bookings/hold-slot', async (request, response, next) => {
           customerName: input.customerName,
           customerEmail: input.customerEmail,
           totalPaidInCents,
-          qrCodeTokenHash: randomBytes(32).toString('hex'),
           holdExpiresAt,
           ticketItems: { create: ticketItems }
         },

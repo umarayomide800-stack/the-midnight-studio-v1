@@ -87,25 +87,10 @@ export interface TestConfirmResponse {
   bookingReference: string;
   customerName: string;
   customerEmail: string;
-  qrCodePayload: string;
   totalPaidInCents: number;
   ticketCount: number;
   ticketCategories: string[];
   slot?: { startsAt: string; endsAt: string };
-}
-
-export interface TicketVerifyRequest {
-  qrHash: string;
-}
-
-export interface TicketVerifyResult {
-  bookingReference: string;
-  customerName: string;
-  paymentStatus: string;
-  scannedTicketCount: number;
-  ticketCategories: string[];
-  slot: { startsAt: string; endsAt: string };
-  scannedAt: string;
 }
 
 export interface HealthResponse {

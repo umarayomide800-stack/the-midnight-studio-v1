@@ -1,6 +1,6 @@
 # Soma Dungeon Deployment Playbook
 
-This document describes a production topology for the Soma Dungeon guest portal, booking API, PostgreSQL data store, Redis lock layer, Stripe payments, Resend email, and staff validator.
+This document describes a production topology for the Soma Dungeon guest portal, booking API, PostgreSQL data store, Redis lock layer, Stripe payments, and Resend email.
 
 ## 1. Production architecture
 
@@ -33,8 +33,7 @@ Guest browser -> Vercel or Netlify (client)
 3. Build with `npm run build --workspace client`.
 4. Publish `client/dist`.
 5. Set `VITE_API_BASE_URL` to the public API origin, for example `https://api.example.com`.
-6. Add an SPA rewrite so `/admin/validator` serves `index.html` rather than a 404.
-7. Restrict the API CORS allowlist to the production frontend origin.
+6. Restrict the API CORS allowlist to the production frontend origin.
 
 ### API deployment
 
@@ -130,7 +129,6 @@ Success criteria for an initial release:
 - Verify `GET /api/health` through the public API load balancer.
 - Verify CORS from the deployed frontend origin.
 - Test a Stripe test-mode payment and signed webhook delivery.
-- Test the staff validator at `/admin/validator` on a phone over HTTPS.
 - Confirm expired holds release `heldCount` and successful payment moves counts to `bookedCount`.
 - Confirm logs do not include payment secrets, QR payloads, or customer card data.
 - Take a database backup and record the migration before production rollout.

@@ -1,4 +1,4 @@
-# Running Soma Dungeon
+# Running The Midnight Studio
 
 ## Prerequisites
 
@@ -79,7 +79,6 @@ Open:
 
 - Guest website: http://localhost:5173
 - API health check: http://localhost:4000/api/health
-- Staff QR validator: http://localhost:5173/admin/validator
 
 The Vite development server proxies `/api` requests to the API on port `4000`.
 
@@ -125,7 +124,6 @@ npx prisma validate --schema server/prisma/schema.prisma
 - `POST /api/v1/bookings/hold-slot`
 - `POST /api/v1/checkout/create-intent`
 - `POST /api/v1/webhooks/stripe`
-- `POST /api/v1/tickets/verify`
 
 ## Production build
 
@@ -143,6 +141,6 @@ Start the compiled API:
 node server/dist/index.js
 ```
 
-Deploy the frontend output from `client/dist`. Configure the hosting provider to serve `client/index.html` for SPA routes, including `/admin/validator`.
+Deploy the frontend output from `client/dist`. Configure the hosting provider to serve `client/index.html` for SPA routes.
 
 For production architecture, pooling, Redis locks, and load testing, see [DEPLOYMENT.md](DEPLOYMENT.md).

@@ -1,6 +1,6 @@
-# Soma Dungeon
+# The Midnight Studio
 
-A full-stack foundation for the Soma Dungeon interactive attraction platform.
+A full-stack foundation for The Midnight Studio interactive attraction platform.
 
 ## Stack
 
@@ -35,9 +35,7 @@ All API responses use a `{ "success": true, "data": ... }` envelope. Validation 
 - `GET /api/v1/shows/:slug/timeslots?date=YYYY-MM-DD` returns slots with `remainingCapacity`.
 - `POST /api/v1/bookings/hold-slot` reserves tickets for 10 minutes.
 - `POST /api/v1/checkout/create-intent` creates a Stripe PaymentIntent for a valid hold and selected add-ons.
-- `POST /api/v1/webhooks/stripe` confirms successful Stripe payments and emails a QR ticket through Resend.
-- `GET /api/v1/tickets/verify/:qrHash` validates a QR payload and marks all booking tickets as scanned.
-- `POST /api/v1/tickets/verify` accepts `{ "qrHash": "..." }` for staff scanner verification.
+- `POST /api/v1/webhooks/stripe` confirms successful Stripe payments and sends the booking receipt email.
 
 Example hold body:
 

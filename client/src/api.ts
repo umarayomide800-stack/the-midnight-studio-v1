@@ -8,7 +8,6 @@ import type {
   CheckoutIntentRequest,
   CheckoutIntentResponse,
   TestConfirmResponse,
-  TicketVerifyResult,
   ApiResponse
 } from '@soma-dungeon/types';
 
@@ -54,10 +53,5 @@ export const api = {
     request<TestConfirmResponse>('/checkout/test-confirm', {
       method: 'POST',
       body: JSON.stringify({ bookingId })
-    }),
-  verifyTicket: (qrHash: string) =>
-    request<TicketVerifyResult>('/tickets/verify', {
-      method: 'POST',
-      body: JSON.stringify({ qrHash })
     })
 };

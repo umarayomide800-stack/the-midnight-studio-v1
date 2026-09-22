@@ -67,19 +67,17 @@ model AddOn {
 }
 
 model Booking {
-  id               String         @id @default(cuid())
-  bookingReference String         @unique
-  customerName     String
-  customerEmail    String
-  totalPaidInCents Int
-  paymentStatus    PaymentStatus  @default(PENDING)
-  stripePaymentIntentId String?    @unique
-  qrCodeTokenHash  String         @unique
-  qrCodePayload    String?        @unique
-  holdExpiresAt    DateTime?
-  ticketItems      TicketItem[]
-  addOns           BookingAddOn[]
-  createdAt        DateTime       @default(now())
+  id                   String         @id @default(cuid())
+  bookingReference     String         @unique
+  customerName         String
+  customerEmail        String
+  totalPaidInCents     Int
+  paymentStatus        PaymentStatus  @default(PENDING)
+  stripePaymentIntentId String?       @unique
+  holdExpiresAt        DateTime?
+  ticketItems          TicketItem[]
+  addOns               BookingAddOn[]
+  createdAt            DateTime       @default(now())
 
   @@index([paymentStatus])
   @@index([holdExpiresAt])
@@ -91,8 +89,6 @@ model TicketItem {
   slotId           String
   ticketCategoryId String
   priceInCents     Int
-  isScanned        Boolean        @default(false)
-  scannedAt        DateTime?
   booking          Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   slot             Slot           @relation(fields: [slotId], references: [id], onDelete: Restrict)
   ticketCategory   TicketCategory @relation(fields: [ticketCategoryId], references: [id], onDelete: Restrict)

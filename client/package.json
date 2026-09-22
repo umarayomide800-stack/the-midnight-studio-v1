@@ -10,11 +10,8 @@
   },
   "dependencies": {
     "@soma-dungeon/types": "*",
-    "@types/qrcode": "^1.5.6",
-    "@zxing/library": "^0.23.0",
     "framer-motion": "^12.23.6",
     "lucide-react": "^0.468.0",
-    "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
