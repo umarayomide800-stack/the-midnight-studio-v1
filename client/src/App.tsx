@@ -535,7 +535,7 @@ function BookingWidget() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <div className="mx-auto max-w-5xl border border-white/10 bg-[#151617] shadow-2xl">
+        <div className="booking-surface mx-auto border border-white/10 bg-[#151617] shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-5 sm:px-8">
             <div>
@@ -1183,6 +1183,13 @@ function StudioHeader({ open }: { open: () => void }) {
           <a className="transition hover:text-ember" href="#/faq">FAQ</a>
           <a className="transition hover:text-ember" href="#/contact">Contact</a>
         </nav>
+        <nav aria-label="Mobile navigation" className="flex max-w-[42vw] items-center gap-4 overflow-x-auto whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.12em] text-white/55 lg:hidden">
+          <a className="shrink-0 transition hover:text-ember" href="#/experiences">Stories</a>
+          <a className="shrink-0 transition hover:text-ember" href="#/visit">Visit</a>
+          <a className="shrink-0 transition hover:text-ember" href="#/guide">Guide</a>
+          <a className="shrink-0 transition hover:text-ember" href="#/faq">FAQ</a>
+          <a className="shrink-0 transition hover:text-ember" href="#/contact">Contact</a>
+        </nav>
         <button className="ember-button px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] sm:px-5" onClick={open}>
           Book tickets
         </button>
@@ -1409,6 +1416,16 @@ function Portal() {
             <a className="transition hover:text-ember" href="#/faq">
               FAQ
             </a>
+            <a className="transition hover:text-ember" href="#/contact">
+              Contact
+            </a>
+          </nav>
+          <nav aria-label="Mobile navigation" className="flex max-w-[40vw] items-center gap-4 overflow-x-auto whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.12em] text-white/55 md:hidden">
+            <a className="shrink-0 transition hover:text-ember" href="#/experiences">Stories</a>
+            <a className="shrink-0 transition hover:text-ember" href="#/visit">Visit</a>
+            <a className="shrink-0 transition hover:text-ember" href="#/guide">Guide</a>
+            <a className="shrink-0 transition hover:text-ember" href="#/faq">FAQ</a>
+            <a className="shrink-0 transition hover:text-ember" href="#/contact">Contact</a>
           </nav>
           <button
             className="ember-button px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] sm:px-5"

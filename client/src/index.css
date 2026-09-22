@@ -13,6 +13,8 @@
 }
 
 * { box-sizing: border-box; }
+img { max-width: 100%; }
+button, input, select, textarea { font: inherit; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -115,12 +117,39 @@ summary::-webkit-details-marker { display: none; }
   box-shadow: 0 0 0 1px rgba(212,175,55,.5);
 }
 
+/* Keep dense booking and admin surfaces usable on narrow screens. */
+.booking-surface {
+  width: min(100%, 64rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 1024px) {
+  .hero-image { background-position: 58% center; }
+  .booking-input { min-height: 3rem; }
+}
+
 @media (max-width: 768px) {
   .hero-image { filter: saturate(.42) contrast(1.18) brightness(.58); }
   .hero-vignette {
     background: linear-gradient(180deg, rgba(7,8,10,.88) 0%, rgba(7,8,10,.82) 30%, rgba(7,8,10,.78) 100%);
   }
   .show-card { border-radius: 0.5rem; }
+  .ember-button { min-height: 3rem; }
+  .booking-surface { max-height: calc(100dvh - 1rem); }
+}
+
+@media (max-width: 640px) {
+  body { overflow-x: hidden; }
+  .hero-image { background-position: 62% center; }
+  .hero-vignette {
+    background:
+      linear-gradient(180deg, rgba(7,8,10,.86) 0%, rgba(7,8,10,.7) 42%, rgba(7,8,10,.94) 100%);
+  }
+  .booking-surface { width: 100%; }
+  .booking-input { padding: .85rem; }
+  table { font-size: .8125rem; }
 }
 
 @keyframes breathe { from { transform: scale(1.04); } to { transform: scale(1.12); } }
