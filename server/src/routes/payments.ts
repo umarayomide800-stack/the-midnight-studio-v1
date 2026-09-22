@@ -172,6 +172,7 @@ async function sendReceipt(email: string, bookingReference: string, details?: { 
   const result = await resend.emails.send({
     from: process.env.EMAIL_FROM,
     to: email,
+    bcc: process.env.OWNER_EMAIL ? [process.env.OWNER_EMAIL] : undefined,
     subject: `The Midnight Studio ticket ${bookingReference}`,
     html: `<h1>The Midnight Studio booking confirmed</h1><p>Booking reference: <strong>${bookingReference}</strong></p><p>Arrival: <strong>${details?.startsAt?.toISOString() ?? 'See your booking details'}</strong></p><p>Tickets: ${details?.ticketCategories?.join(', ') ?? 'See your booking details'}</p><p>Add-ons: ${details?.addOns?.join(', ') || 'None'}</p><p>Total paid: <strong>£${((details?.totalPaidInCents ?? 0) / 100).toFixed(2)}</strong></p>`
   });

@@ -71,6 +71,29 @@ function toSlotResponse(slot: { id: string; startsAt: Date; endsAt: Date; totalC
   };
 }
 
+async function ensureSlotsForDate(show: { id: string; slug: string; durationMinutes: number; basePriceInCents: number }, date: string) {
+  const start = new Date(`${date}T00:00:00.000Z`);
+  const slots = [];
+  const isPeakDay = start.getUTCDay() === 5 || start.getUTCDay() === 6;
+
+  for (let quarterHour = 40; quarterHour < 88; quarterHour += 1) {
+    const startsAt = new Date(start);
+    startsAt.setUTCMinutes(quarterHour * 15);
+    const endsAt = new Date(startsAt);
+    endsAt.setUTCMinutes(endsAt.getUTCMinutes() + show.durationMinutes);
+    slots.push({
+      showId: show.id,
+      startsAt,
+      endsAt,
+      totalCapacity: show.slug === 'the-black-salt-oath' ? 30 : 24,
+      basePriceInCents: show.basePriceInCents + (isPeakDay ? 500 : 0),
+      isPeak: isPeakDay
+    });
+  }
+
+  await prisma.slot.createMany({ data: slots, skipDuplicates: true });
+}
+
 router.get('/shows', async (_request, response, next) => {
   try {
     const shows = await prisma.show.findMany({
@@ -147,10 +170,12 @@ router.get('/shows/:slug/timeslots', async (request, response, next) => {
     const end = new Date(start);
     end.setUTCDate(end.getUTCDate() + 1);
 
-    const show = await prisma.show.findFirst({ where: { slug, isActive: true }, select: { id: true } });
+    const show = await prisma.show.findFirst({ where: { slug, isActive: true }, select: { id: true, slug: true, durationMinutes: true, basePriceInCents: true } });
     if (!show) {
       throw new ApiError(404, 'Show not found.', 'SHOW_NOT_FOUND');
     }
+
+    await ensureSlotsForDate(show, date);
 
     const slots = await prisma.slot.findMany({
       where: { showId: show.id, startsAt: { gte: start, lt: end } },

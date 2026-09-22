@@ -24,7 +24,7 @@ Guest browser -> Vercel or Netlify (client)
 | PostgreSQL | Supabase or Neon | Use the pooled connection string for the app and the direct connection string for migrations. Enable SSL. |
 | Optional Redis | Upstash Redis | Available for future contention reduction; PostgreSQL remains the booking correctness boundary. |
 | Payments | Stripe | Configure the webhook endpoint at `/api/v1/webhooks/stripe`. Keep the signing secret server-side. |
-| Receipts | Resend | Configure a verified sending domain and `EMAIL_FROM`. |
+| Receipts | Resend | Configure a verified sending domain, `EMAIL_FROM`, and optional `OWNER_EMAIL` for an owner copy. |
 
 ### Frontend deployment
 

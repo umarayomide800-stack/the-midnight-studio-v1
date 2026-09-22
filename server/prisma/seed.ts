@@ -84,7 +84,7 @@ async function main() {
   const startDate = new Date();
   startDate.setUTCHours(0, 0, 0, 0);
 
-  for (let day = 0; day < 7; day += 1) {
+  for (let day = 0; day < 30; day += 1) {
     for (let quarterHour = 40; quarterHour < 88; quarterHour += 1) {
       const startsAt = new Date(startDate);
       startsAt.setUTCDate(startDate.getUTCDate() + day);

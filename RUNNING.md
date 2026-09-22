@@ -43,7 +43,7 @@ Update `server/.env` with your PostgreSQL connection string. The default local v
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/soma_dungeon?schema=public"
 ```
 
-For payment testing, configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, and `EMAIL_FROM` on the server. Create `client/.env` with:
+For payment testing, configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `EMAIL_FROM`, and `OWNER_EMAIL` on the server. Booking receipts are sent to the customer and copied to `OWNER_EMAIL`. Create `client/.env` with:
 
 For the operations dashboard, configure a strong random `ADMIN_API_KEY` on the server and open `#/admin` only for trusted staff.
 
@@ -74,7 +74,7 @@ Populate the catalog and timeslots:
 npm run db:seed
 ```
 
-The seed creates 3 shows, 4 duration packages (1 hour £100, 2 hours £150, 3 hours £250, overnight £350), 3 equipment packages (Basic £100, Standard £250, Exclusive £300), and timeslots for the next 7 days.
+The seed creates 3 shows, 4 duration packages (1 hour £100, 2 hours £150, 3 hours £250, overnight £350), 3 equipment packages (Basic £100, Standard £250, Exclusive £300), and timeslots for the next 30 days. Additional requested dates generate slots automatically.
 
 ## Start development
 

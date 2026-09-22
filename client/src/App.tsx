@@ -314,8 +314,8 @@ function BookingWidget() {
   const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
   const [creatingPayment, setCreatingPayment] = useState(false);
 
-  // Generate 7 selectable calendar dates starting from today
-  const dates = Array.from({ length: 7 }, (_, index) => {
+  // Keep a rolling booking window; the API creates missing slots on demand.
+  const dates = Array.from({ length: 30 }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() + index);
     return date;
@@ -1222,7 +1222,7 @@ function FaqPageContent() {
 }
 
 function ContactPageContent({ open }: { open: () => void }) {
-  return <div className="mt-12 grid max-w-3xl gap-5 md:grid-cols-2"><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">General enquiries</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:hello@themidnightstudio.example">hello@themidnightstudio.example</a></article><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Bookings</p><h2 className="mt-6 font-display text-2xl">Reserve a room</h2><p className="mt-3 text-sm leading-6 text-white/50">Choose an experience and a live timeslot in under two minutes.</p><button className="ember-button mt-6 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></article></div>;
+  return <div className="mt-12 grid max-w-3xl gap-5 md:grid-cols-2"><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">General enquiries</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:umarayomide700@gmail.com">umarayomide700@gmail.com</a></article><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Bookings</p><h2 className="mt-6 font-display text-2xl">Reserve a room</h2><p className="mt-3 text-sm leading-6 text-white/50">Choose an experience and a live timeslot in under two minutes.</p><button className="ember-button mt-6 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></article></div>;
 }
 
 function PaymentForm({ onComplete, disabled }: { onComplete: () => Promise<void>; disabled: boolean }) {
