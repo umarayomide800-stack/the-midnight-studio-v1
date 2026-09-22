@@ -6,6 +6,7 @@ import type { HealthResponse } from '@the-midnight-studio/types';
 import v1Router, { releaseExpiredHolds } from './routes/v1.js';
 import paymentsRouter, { stripeWebhook } from './routes/payments.js';
 import bookingManagementRouter from './routes/booking-management.js';
+import contactRouter from './routes/contact.js';
 import { errorHandler } from './middleware/error.js';
 
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api/v1', v1Router);
 app.use('/api/v1', paymentsRouter);
 app.use('/api/v1', bookingManagementRouter);
+app.use('/api/v1', contactRouter);
 
 app.get('/api/health', (_request, response) => {
   const payload: HealthResponse = {

@@ -75,4 +75,6 @@ export const api = {
     if (!response.ok) throw new Error('Could not export bookings.');
     return response.blob();
   },
+  sendContactMessage: (payload: { name: string; email: string; message: string }) =>
+    request<{ sent: boolean }>('/contact', { method: 'POST', body: JSON.stringify(payload) }),
 };

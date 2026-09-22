@@ -13,6 +13,7 @@ import {
   Eye,
   Loader2,
   MapPin,
+  Menu,
   Download,
   RotateCcw,
   ShieldCheck,
@@ -384,6 +385,13 @@ function BookingWidget() {
     return date;
   });
 
+  const toLocalDateValue = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Fetch slots whenever the show or date changes
   useEffect(() => {
     if (!state.date || !state.show?.slug) return;
@@ -396,7 +404,7 @@ function BookingWidget() {
       .then((data) => {
         if (active) {
           const now = Date.now();
-          const futureSlots = data.slots.filter((s) => new Date(s.startsAt).getTime() > now);
+          const futureSlots = data.slots.filter((slot) => new Date(slot.startsAt).getTime() > now && slot.remainingCapacity > 0);
           setAvailableSlots(futureSlots);
           setLoadingSlots(false);
         }
@@ -405,6 +413,7 @@ function BookingWidget() {
         if (active) {
           console.error('Failed to load timeslots:', err);
           setAvailableSlots([]);
+          setActionError(err instanceof Error ? err.message : 'Timeslots could not be loaded. Please try again.');
           setLoadingSlots(false);
         }
       });
@@ -701,7 +710,7 @@ function BookingWidget() {
                     <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">Select a date</p>
                     <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
                       {dates.map((date) => {
-                        const value = date.toISOString().slice(0, 10);
+                        const value = toLocalDateValue(date);
                         const isSelected = state.date === value;
                         return (
                           <button
@@ -1167,6 +1176,8 @@ function getStudioPage(): StudioPageName {
 }
 
 function StudioHeader({ open }: { open: () => void }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = () => setMenuOpen(false);
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/90 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
@@ -1183,17 +1194,14 @@ function StudioHeader({ open }: { open: () => void }) {
           <a className="transition hover:text-ember" href="#/faq">FAQ</a>
           <a className="transition hover:text-ember" href="#/contact">Contact</a>
         </nav>
-        <nav aria-label="Mobile navigation" className="flex max-w-[42vw] items-center gap-4 overflow-x-auto whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.12em] text-white/55 lg:hidden">
-          <a className="shrink-0 transition hover:text-ember" href="#/experiences">Stories</a>
-          <a className="shrink-0 transition hover:text-ember" href="#/visit">Visit</a>
-          <a className="shrink-0 transition hover:text-ember" href="#/guide">Guide</a>
-          <a className="shrink-0 transition hover:text-ember" href="#/faq">FAQ</a>
-          <a className="shrink-0 transition hover:text-ember" href="#/contact">Contact</a>
-        </nav>
+        <button className="grid h-11 w-11 place-items-center border border-white/15 text-ember lg:hidden" aria-expanded={menuOpen} aria-controls="mobile-menu" aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((openState) => !openState)}>
+          {menuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
         <button className="ember-button px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] sm:px-5" onClick={open}>
           Book tickets
         </button>
       </div>
+      {menuOpen && <nav id="mobile-menu" aria-label="Mobile navigation" className="border-t border-white/10 bg-[#090b0d] px-5 py-4 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={closeMenu}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={closeMenu}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={closeMenu}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={closeMenu}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={closeMenu}>Contact</a></div></nav>}
     </header>
   );
 }
@@ -1292,7 +1300,22 @@ function FaqPageContent() {
 }
 
 function ContactPageContent({ open }: { open: () => void }) {
-  return <div className="mt-12 grid max-w-3xl gap-5 md:grid-cols-2"><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">General enquiries</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:umarayomide700@gmail.com">umarayomide700@gmail.com</a></article><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Bookings</p><h2 className="mt-6 font-display text-2xl">Reserve a room</h2><p className="mt-3 text-sm leading-6 text-white/50">Choose an experience and a live timeslot in under two minutes.</p><button className="ember-button mt-6 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></article></div>;
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSending(true);
+    setStatus(null);
+    try {
+      await api.sendContactMessage(form);
+      setForm({ name: '', email: '', message: '' });
+      setStatus('Message sent. We will be in touch soon.');
+    } catch (error) {
+      setStatus((error as Error).message || 'Message could not be sent. Please try again.');
+    } finally { setSending(false); }
+  }
+  return <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_0.8fr]"><form className="border border-white/10 bg-black/20 p-6 sm:p-8" onSubmit={submit}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Send an enquiry</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-xs uppercase tracking-widest text-white/50">Name<input className="booking-input mt-2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label></div><label className="mt-5 block text-xs uppercase tracking-widest text-white/50">Message<textarea className="booking-input mt-2 min-h-40 resize-y" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required minLength={10} /></label>{status && <p className="mt-4 text-sm text-ember" role="status">{status}</p>}<button className="ember-button mt-6 bg-ember px-6 py-4 text-xs font-bold uppercase tracking-widest text-obsidian disabled:opacity-50" disabled={sending} type="submit">{sending ? 'Sending...' : 'Send message'}</button></form><aside className="border border-white/10 bg-black/20 p-6 sm:p-8"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Direct contact</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block break-all text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:umarayomide700@gmail.com">umarayomide700@gmail.com</a><p className="mt-6 text-sm leading-7 text-white/50">For accessibility questions, group bookings, or anything that needs a considered answer, send us a note.</p><button className="ember-button mt-7 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></aside></div>;
 }
 
 function PaymentForm({ onComplete, disabled }: { onComplete: () => Promise<void>; disabled: boolean }) {
@@ -1376,6 +1399,7 @@ function ManageBookingPage() {
 function Portal() {
   const [selectedShow, setSelectedShow] = useState<EnrichedShow | null>(null);
   const [advisoryShow, setAdvisoryShow] = useState<EnrichedShow | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { open, shows } = useBooking();
   const [page, setPage] = useState(() => getStudioPage());
 
@@ -1420,13 +1444,9 @@ function Portal() {
               Contact
             </a>
           </nav>
-          <nav aria-label="Mobile navigation" className="flex max-w-[40vw] items-center gap-4 overflow-x-auto whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.12em] text-white/55 md:hidden">
-            <a className="shrink-0 transition hover:text-ember" href="#/experiences">Stories</a>
-            <a className="shrink-0 transition hover:text-ember" href="#/visit">Visit</a>
-            <a className="shrink-0 transition hover:text-ember" href="#/guide">Guide</a>
-            <a className="shrink-0 transition hover:text-ember" href="#/faq">FAQ</a>
-            <a className="shrink-0 transition hover:text-ember" href="#/contact">Contact</a>
-          </nav>
+          <button className="grid h-11 w-11 place-items-center border border-white/15 text-ember md:hidden" aria-expanded={menuOpen} aria-controls="home-mobile-menu" aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((openState) => !openState)}>
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
           <button
             className="ember-button px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] sm:px-5"
             onClick={() => open()}
@@ -1435,6 +1455,7 @@ function Portal() {
           </button>
         </div>
       </header>
+      {menuOpen && <nav id="home-mobile-menu" aria-label="Mobile navigation" className="fixed inset-x-0 top-20 z-30 border-b border-white/10 bg-[#090b0d] px-5 py-4 md:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={() => setMenuOpen(false)}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={() => setMenuOpen(false)}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={() => setMenuOpen(false)}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={() => setMenuOpen(false)}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={() => setMenuOpen(false)}>Contact</a></div></nav>}
 
       <section id="top" aria-labelledby="hero-heading" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
         <div className="hero-image absolute inset-0" />
@@ -1589,6 +1610,12 @@ function Portal() {
           >
             Find a time <ArrowRight size={16} />
           </button>
+          <a
+            className="inline-flex items-center justify-center border border-white/20 px-7 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/70 transition hover:border-ember hover:text-ember"
+            href="#/contact"
+          >
+            Contact us
+          </a>
         </div>
       </section>
 
