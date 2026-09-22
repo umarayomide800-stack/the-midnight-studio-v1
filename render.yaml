@@ -5,6 +5,7 @@ services:
     plan: free
     rootDir: .
     buildCommand: npm ci && npm run db:generate --workspace server && npm run build --workspace server
+    releaseCommand: npm run db:push --workspace server && npm run db:seed --workspace server
     startCommand: node server/dist/index.js
     envVars:
       - key: NODE_ENV

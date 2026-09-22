@@ -54,31 +54,37 @@ const addOns = [
 ];
 
 async function main() {
-  await prisma.bookingAddOn.deleteMany();
-  await prisma.ticketItem.deleteMany();
-  await prisma.booking.deleteMany();
-  await prisma.slot.deleteMany();
-  await prisma.addOn.deleteMany();
-  await prisma.ticketCategory.deleteMany();
-  await prisma.show.deleteMany();
+  for (const show of shows) {
+    await prisma.show.upsert({
+      where: { slug: show.slug },
+      update: show,
+      create: show
+    });
+  }
 
-  await prisma.show.createMany({ data: shows });
-  await prisma.ticketCategory.createMany({
-    data: ticketCategories.map((category) => ({
-      ...category,
-      priceMultiplier: category.priceMultiplier
-    }))
-  });
-  await prisma.addOn.createMany({ data: addOns });
+  for (const category of ticketCategories) {
+    await prisma.ticketCategory.upsert({
+      where: { name: category.name },
+      update: category,
+      create: category
+    });
+  }
+
+  for (const addOn of addOns) {
+    await prisma.addOn.upsert({
+      where: { title: addOn.title },
+      update: addOn,
+      create: addOn
+    });
+  }
 
   const createdShows = await prisma.show.findMany({ select: { id: true, slug: true, durationMinutes: true, basePriceInCents: true } });
   const slots = [];
   const startDate = new Date();
-  startDate.setUTCSeconds(0, 0);
-  startDate.setUTCMinutes(startDate.getUTCMinutes() + (15 - (startDate.getUTCMinutes() % 15)));
+  startDate.setUTCHours(0, 0, 0, 0);
 
   for (let day = 0; day < 7; day += 1) {
-    for (let quarterHour = 0; quarterHour < 96; quarterHour += 1) {
+    for (let quarterHour = 40; quarterHour < 88; quarterHour += 1) {
       const startsAt = new Date(startDate);
       startsAt.setUTCDate(startDate.getUTCDate() + day);
       startsAt.setUTCMinutes(quarterHour * 15);
@@ -100,7 +106,7 @@ async function main() {
     }
   }
 
-  await prisma.slot.createMany({ data: slots });
+  await prisma.slot.createMany({ data: slots, skipDuplicates: true });
   console.log(`Seeded ${createdShows.length} shows, ${ticketCategories.length} ticket categories, ${addOns.length} add-ons, and ${slots.length} slots.`);
 }
 

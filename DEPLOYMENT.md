@@ -39,6 +39,14 @@ Guest browser -> Vercel or Netlify (client)
 
 For the Render service, leave **Root Directory** blank (the repository root). The root `package.json` defines the `client`, `server`, and `shared/types` workspaces; setting Root Directory to `server` makes commands using `--workspace server` fail with `No workspaces found`.
 
+Render release command:
+
+```powershell
+npm run db:push --workspace server; npm run db:seed --workspace server
+```
+
+The seed is idempotent: it upserts catalog records and adds missing slots without deleting existing bookings. This release command is what populates a new production database so the booking calendar has availability.
+
 Render start command:
 
 ```powershell
