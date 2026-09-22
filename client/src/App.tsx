@@ -35,35 +35,50 @@ export interface EnrichedShow extends ApiShow {
 }
 
 const showMetadata: Record<string, { eyebrow: string; accent: string; image: string }> = {
-  'the-black-salt-oath': {
-    eyebrow: 'The condemned wing',
+  'the-velvet-contract': {
+    eyebrow: 'The private salon',
     accent: 'from-[#a11a14] to-[#3c0b0b]',
     image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85'
   },
   'house-of-hollow-bells': {
-    eyebrow: 'Quarantine district',
+    eyebrow: 'The protocol room',
     accent: 'from-[#6a5a22] to-[#201d10]',
     image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=85'
   },
   'red-veil-society': {
-    eyebrow: 'The old gallows',
+    eyebrow: 'The invitation chamber',
     accent: 'from-[#44513c] to-[#121714]',
     image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85'
+  },
+  'the-iron-garden': {
+    eyebrow: 'The discipline wing',
+    accent: 'from-[#4c4438] to-[#16130f]',
+    image: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1600&q=85'
+  },
+  'aftercare-at-midnight': {
+    eyebrow: 'The quiet room',
+    accent: 'from-[#6d3b4b] to-[#1b0e15]',
+    image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1600&q=85'
+  },
+  'the-nocturne-protocol': {
+    eyebrow: 'The overnight suite',
+    accent: 'from-[#272b3b] to-[#0b0d14]',
+    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85'
   }
 };
 
 const defaultFallbackShows: EnrichedShow[] = [
   {
     id: '1',
-    title: 'The Black Salt Oath',
-    slug: 'the-black-salt-oath',
-    eyebrow: 'The condemned wing',
-    shortDescription: 'A forbidden rite beneath the old quarter.',
-    fullDescription: 'Follow the trail of a vanished order through flooded crypts, sealed chambers, and a secret that refuses to stay buried.',
-    scareLevel: 4,
-    durationMinutes: 75,
-    ageRestriction: 16,
-    sensoryAdvisories: 'Low lighting, smoke effects, sudden sounds, confined spaces',
+    title: 'The Velvet Contract',
+    slug: 'the-velvet-contract',
+    eyebrow: 'The private salon',
+    shortDescription: 'A ritual of trust, language, and deliberate surrender.',
+    fullDescription: 'Enter a private salon where every boundary is spoken, every signal matters, and the evening unfolds through guided BDSM-inspired scenes of trust and control.',
+    scareLevel: 2,
+    durationMinutes: 60,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, theatrical sound, close-contact performance, verbal participation',
     coverImageUrl: null,
     isActive: true,
     image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85',
@@ -73,13 +88,13 @@ const defaultFallbackShows: EnrichedShow[] = [
     id: '2',
     title: 'The House of Hollow Bells',
     slug: 'house-of-hollow-bells',
-    eyebrow: 'Quarantine district',
-    shortDescription: 'A cursed manor where every bell tolls for someone.',
-    fullDescription: 'Enter the abandoned Bellwether house and uncover why its bells still ring long after the family disappeared.',
-    scareLevel: 3,
+    eyebrow: 'The protocol room',
+    shortDescription: 'A manor of rules, ritual, and beautifully measured control.',
+    fullDescription: 'Move through a candlelit house where protocol shapes every encounter. This atmospheric BDSM story explores authority, restraint, and the power of a clearly spoken yes.',
+    scareLevel: 2,
     durationMinutes: 60,
-    ageRestriction: 14,
-    sensoryAdvisories: 'Flashing lights, theatrical fog, sudden sounds',
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, theatrical fog, bells, guided movement',
     coverImageUrl: null,
     isActive: true,
     image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=85',
@@ -89,17 +104,65 @@ const defaultFallbackShows: EnrichedShow[] = [
     id: '3',
     title: 'The Red Veil Society',
     slug: 'red-veil-society',
-    eyebrow: 'The old gallows',
-    shortDescription: 'A secret society is recruiting, and you are on the list.',
-    fullDescription: 'Solve the Society\'s riddles, earn your invitation, and decide how much of yourself you are willing to leave behind.',
-    scareLevel: 2,
+    eyebrow: 'The invitation chamber',
+    shortDescription: 'A secret society where confidence is your invitation.',
+    fullDescription: 'Choose your role, learn the house signals, and take part in an immersive social ritual built around consent, confidence, and the thrill of being seen.',
+    scareLevel: 1,
     durationMinutes: 50,
-    ageRestriction: 12,
-    sensoryAdvisories: 'Low lighting, theatrical fog',
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, theatrical fog, social interaction, optional participation',
     coverImageUrl: null,
     isActive: true,
     image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85',
     accent: 'from-[#44513c] to-[#121714]'
+  },
+  {
+    id: '4',
+    title: 'The Iron Garden',
+    slug: 'the-iron-garden',
+    eyebrow: 'The discipline wing',
+    shortDescription: 'A disciplined garden where patience becomes power.',
+    fullDescription: 'Follow a structured path through sound, stillness, and ceremony. The Iron Garden is a slow-burn BDSM experience about composure, anticipation, and trust.',
+    scareLevel: 2,
+    durationMinutes: 75,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Metallic sound, low lighting, stillness, guided instruction',
+    coverImageUrl: null,
+    isActive: true,
+    image: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1600&q=85',
+    accent: 'from-[#4c4438] to-[#16130f]'
+  },
+  {
+    id: '5',
+    title: 'Aftercare at Midnight',
+    slug: 'aftercare-at-midnight',
+    eyebrow: 'The quiet room',
+    shortDescription: 'A softer room for those who want the story to linger.',
+    fullDescription: 'A gentler, intimate experience centred on negotiation, sensation, and aftercare. Come for the atmosphere; leave with a deeper understanding of trust.',
+    scareLevel: 1,
+    durationMinutes: 60,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, quiet conversation, optional touch, seated scenes',
+    coverImageUrl: null,
+    isActive: true,
+    image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1600&q=85',
+    accent: 'from-[#6d3b4b] to-[#1b0e15]'
+  },
+  {
+    id: '6',
+    title: 'The Nocturne Protocol',
+    slug: 'the-nocturne-protocol',
+    eyebrow: 'The overnight suite',
+    shortDescription: 'An overnight descent into ritual, roles, and release.',
+    fullDescription: 'Stay until morning in our most immersive BDSM story. Negotiate your limits, choose your pace, and let the night become a private performance of trust.',
+    scareLevel: 3,
+    durationMinutes: 120,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Overnight stay, low lighting, theatrical sound, guided participation',
+    coverImageUrl: null,
+    isActive: true,
+    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85',
+    accent: 'from-[#272b3b] to-[#0b0d14]'
   }
 ];
 
@@ -1114,7 +1177,7 @@ function StudioHeader({ open }: { open: () => void }) {
           <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
         </a>
         <nav aria-label="Main navigation" className="hidden items-center gap-7 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55 lg:flex">
-          <a className="transition hover:text-ember" href="#/experiences">Experiences</a>
+          <a className="transition hover:text-ember" href="#/experiences">Stories</a>
           <a className="transition hover:text-ember" href="#/visit">Visit</a>
           <a className="transition hover:text-ember" href="#/guide">Guide</a>
           <a className="transition hover:text-ember" href="#/faq">FAQ</a>
@@ -1134,8 +1197,8 @@ function StudioPage({ page, shows, open }: { page: Exclude<StudioPageName, 'home
   const pageContent = {
     experiences: {
       eyebrow: 'Choose your room',
-      title: 'Three stories.\nOne way out.',
-      description: 'Explore every live horror experience, compare the atmosphere, and choose the room that will follow you home.'
+      title: 'Six stories.\nOne night of trust.',
+      description: 'Explore our adult BDSM-inspired experiences, compare the atmosphere, and choose a room built around consent, roles, and ritual.'
     },
     visit: {
       eyebrow: 'Your night begins here',
@@ -1335,7 +1398,7 @@ function Portal() {
           </a>
           <nav className="hidden items-center gap-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
             <a className="transition hover:text-ember" href="#/experiences">
-              Experiences
+              Stories
             </a>
             <a className="transition hover:text-ember" href="#/visit">
               Visit
@@ -1371,7 +1434,7 @@ function Portal() {
               <span className="text-ember">Stay until it remembers you.</span>
             </h1>
             <p className="mt-8 max-w-xl text-base leading-7 text-white/65 sm:text-lg">
-              Three live horror experiences built in the bones of the city. One locked door. No one leaves unchanged.
+              Six immersive BDSM-inspired experiences built around consent, atmosphere, and the freedom to choose your limits.
             </p>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
               <button
@@ -1390,7 +1453,7 @@ function Portal() {
           </motion.div>
           <div className="mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/20 pt-5 text-[10px] uppercase tracking-[0.16em] text-white/50 sm:mt-24">
             <span>
-              <strong className="block font-display text-xl text-white">03</strong> live stories
+              <strong className="block font-display text-xl text-white">06</strong> live stories
             </span>
             <span>
               <strong className="block font-display text-xl text-white">75</strong> minutes inside
@@ -1412,15 +1475,15 @@ function Portal() {
             className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end"
           >
             <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Choose your room</p>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Choose your story</p>
               <h2 id="experiences-heading" className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
-                Three ways to lose
+                Six ways to enter
                 <br />
                 <span className="text-ember">your way back out.</span>
               </h2>
             </div>
             <p className="max-w-xs text-sm leading-6 text-white/45">
-              Each experience is intimate, immersive, and designed to make the walls feel a little too close.
+              Each adult experience is intimate, immersive, and grounded in communication, consent, and aftercare.
             </p>
           </motion.div>
 

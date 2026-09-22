@@ -76,7 +76,7 @@ async function ensureSlotsForDate(show: { id: string; slug: string; durationMinu
   const slots = [];
   const isPeakDay = start.getUTCDay() === 5 || start.getUTCDay() === 6;
 
-  for (let quarterHour = 40; quarterHour < 88; quarterHour += 1) {
+  for (let quarterHour = 0; quarterHour < 96; quarterHour += 1) {
     const startsAt = new Date(start);
     startsAt.setUTCMinutes(quarterHour * 15);
     const endsAt = new Date(startsAt);

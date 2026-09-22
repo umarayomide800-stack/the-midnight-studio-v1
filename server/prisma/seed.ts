@@ -4,40 +4,76 @@ const prisma = new PrismaClient();
 
 const shows = [
   {
-    title: 'The Black Salt Oath',
-    slug: 'the-black-salt-oath',
-    shortDescription: 'A forbidden rite beneath the old quarter.',
-    fullDescription: 'Follow the trail of a vanished order through flooded crypts, sealed chambers, and a secret that refuses to stay buried.',
-    scareLevel: 4,
-    durationMinutes: 75,
-    ageRestriction: 16,
-    sensoryAdvisories: 'Low lighting, smoke effects, sudden sounds, confined spaces',
+    title: 'The Velvet Contract',
+    slug: 'the-velvet-contract',
+    shortDescription: 'A ritual of trust, language, and deliberate surrender.',
+    fullDescription: 'Enter a private salon where every boundary is spoken, every signal matters, and the evening unfolds through guided BDSM-inspired scenes of trust and control.',
+    scareLevel: 2,
+    durationMinutes: 60,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, theatrical sound, close-contact performance, verbal participation',
     coverImageUrl: '/images/black-salt-oath.jpg',
     basePriceInCents: 3200
   },
   {
     title: 'The House of Hollow Bells',
     slug: 'house-of-hollow-bells',
-    shortDescription: 'A cursed manor where every bell tolls for someone.',
-    fullDescription: 'Enter the abandoned Bellwether house and uncover why its bells still ring long after the family disappeared.',
-    scareLevel: 3,
+    shortDescription: 'A manor of rules, ritual, and beautifully measured control.',
+    fullDescription: 'Move through a candlelit house where protocol shapes every encounter. This atmospheric BDSM story explores authority, restraint, and the power of a clearly spoken yes.',
+    scareLevel: 2,
     durationMinutes: 60,
-    ageRestriction: 14,
-    sensoryAdvisories: 'Flashing lights, theatrical fog, sudden sounds',
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, theatrical fog, bells, guided movement',
     coverImageUrl: '/images/hollow-bells.jpg',
     basePriceInCents: 2800
   },
   {
     title: 'The Red Veil Society',
     slug: 'red-veil-society',
-    shortDescription: 'A secret society is recruiting, and you are on the list.',
-    fullDescription: 'Solve the Society\'s riddles, earn your invitation, and decide how much of yourself you are willing to leave behind.',
-    scareLevel: 2,
+    shortDescription: 'A secret society where confidence is your invitation.',
+    fullDescription: 'Choose your role, learn the house signals, and take part in an immersive social ritual built around consent, confidence, and the thrill of being seen.',
+    scareLevel: 1,
     durationMinutes: 50,
-    ageRestriction: 12,
-    sensoryAdvisories: 'Low lighting, theatrical fog',
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, theatrical fog, social interaction, optional participation',
     coverImageUrl: '/images/red-veil-society.jpg',
     basePriceInCents: 2400
+  },
+  {
+    title: 'The Iron Garden',
+    slug: 'the-iron-garden',
+    shortDescription: 'A disciplined garden where patience becomes power.',
+    fullDescription: 'Follow a structured path through sound, stillness, and ceremony. The Iron Garden is a slow-burn BDSM experience about composure, anticipation, and trust.',
+    scareLevel: 2,
+    durationMinutes: 75,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Metallic sound, low lighting, stillness, guided instruction',
+    coverImageUrl: '/images/iron-garden.jpg',
+    basePriceInCents: 3400
+  },
+  {
+    title: 'Aftercare at Midnight',
+    slug: 'aftercare-at-midnight',
+    shortDescription: 'A softer room for those who want the story to linger.',
+    fullDescription: 'A gentler, intimate experience centred on negotiation, sensation, and aftercare. Come for the atmosphere; leave with a deeper understanding of trust.',
+    scareLevel: 1,
+    durationMinutes: 60,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Low lighting, quiet conversation, optional touch, seated scenes',
+    coverImageUrl: '/images/aftercare-at-midnight.jpg',
+    basePriceInCents: 3000
+  },
+  {
+    title: 'The Nocturne Protocol',
+    slug: 'the-nocturne-protocol',
+    shortDescription: 'An overnight descent into ritual, roles, and release.',
+    fullDescription: 'Stay until morning in our most immersive BDSM story. Negotiate your limits, choose your pace, and let the night become a private performance of trust.',
+    scareLevel: 3,
+    durationMinutes: 120,
+    ageRestriction: 18,
+    sensoryAdvisories: 'Overnight stay, low lighting, theatrical sound, guided participation',
+    coverImageUrl: '/images/nocturne-protocol.jpg',
+    basePriceInCents: 4200
   }
 ];
 
@@ -85,7 +121,7 @@ async function main() {
   startDate.setUTCHours(0, 0, 0, 0);
 
   for (let day = 0; day < 30; day += 1) {
-    for (let quarterHour = 40; quarterHour < 88; quarterHour += 1) {
+    for (let quarterHour = 0; quarterHour < 96; quarterHour += 1) {
       const startsAt = new Date(startDate);
       startsAt.setUTCDate(startDate.getUTCDate() + day);
       startsAt.setUTCMinutes(quarterHour * 15);
