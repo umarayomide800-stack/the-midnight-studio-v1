@@ -43,7 +43,14 @@ Update `server/.env` with your PostgreSQL connection string. The default local v
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/soma_dungeon?schema=public"
 ```
 
-For payment testing, also configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, and `EMAIL_FROM`.
+For payment testing, configure `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, and `EMAIL_FROM` on the server. Create `client/.env` with:
+
+```env
+VITE_API_BASE_URL=http://localhost:4000
+VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
+
+Stripe must deliver `payment_intent.succeeded` to `/api/v1/webhooks/stripe` before the booking is marked confirmed.
 
 ## Prepare the database
 

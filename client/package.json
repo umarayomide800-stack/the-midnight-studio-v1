@@ -9,6 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.11.0",
+    "@stripe/stripe-js": "^9.17.0",
     "@the-midnight-studio/types": "*",
     "framer-motion": "^12.23.6",
     "lucide-react": "^0.468.0",

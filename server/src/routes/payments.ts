@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import Stripe from 'stripe';
 import { Resend } from 'resend';
@@ -18,6 +17,39 @@ const checkoutSchema = z.object({
 });
 
 const envelope = <T>(data: T) => ({ success: true, data });
+
+router.get('/bookings/:bookingId/status', async (request, response, next) => {
+  try {
+    const bookingId = z.string().min(1).parse(request.params.bookingId);
+    const email = z.string().email().parse(request.query.email);
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, customerEmail: { equals: email, mode: 'insensitive' } },
+      include: {
+        ticketItems: {
+          include: { ticketCategory: { select: { name: true } }, slot: { select: { startsAt: true, endsAt: true } } }
+        }
+      }
+    });
+    if (!booking) throw new ApiError(404, 'Booking not found.', 'BOOKING_NOT_FOUND');
+
+    response.json(envelope({
+      status: booking.paymentStatus,
+      confirmation: booking.paymentStatus === 'CONFIRMED'
+        ? {
+            bookingReference: booking.bookingReference,
+            customerName: booking.customerName,
+            customerEmail: booking.customerEmail,
+            totalPaidInCents: booking.totalPaidInCents,
+            ticketCount: booking.ticketItems.length,
+            ticketCategories: booking.ticketItems.map((ticket) => ticket.ticketCategory.name),
+            slot: booking.ticketItems[0]?.slot
+          }
+        : null
+    }));
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/checkout/create-intent', async (request, response, next) => {
   try {
@@ -50,19 +82,18 @@ router.post('/checkout/create-intent', async (request, response, next) => {
     const amount = booking.totalPaidInCents + addOnTotal;
 
     const isStripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_SECRET_KEY.includes('placeholder'));
+    if (!isStripeConfigured) throw new ApiError(503, 'Online payments are not configured yet.', 'PAYMENTS_NOT_CONFIGURED');
     let clientSecret: string | null = null;
-    let paymentIntentId = `pi_test_${randomBytes(12).toString('hex')}`;
+    let paymentIntentId: string;
 
-    if (isStripeConfigured) {
-      const intent = await stripe.paymentIntents.create({
-        amount,
-        currency: 'gbp',
-        receipt_email: booking.customerEmail,
-        metadata: { bookingId: booking.id, slotId: input.slotId }
-      });
-      clientSecret = intent.client_secret;
-      paymentIntentId = intent.id;
-    }
+    const intent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'gbp',
+      receipt_email: booking.customerEmail,
+      metadata: { bookingId: booking.id, slotId: input.slotId }
+    });
+    clientSecret = intent.client_secret;
+    paymentIntentId = intent.id;
 
     await prisma.$transaction(async (transaction) => {
       const updated = await transaction.booking.updateMany({
@@ -83,57 +114,6 @@ router.post('/checkout/create-intent', async (request, response, next) => {
     });
 
     response.status(201).json(envelope({ clientSecret, paymentIntentId, bookingId: booking.id, amount }));
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/checkout/test-confirm', async (request, response, next) => {
-  try {
-    const { bookingId } = z.object({ bookingId: z.string().min(1) }).parse(request.body);
-    const confirmed = await prisma.$transaction(async (transaction) => {
-      const booking = await transaction.booking.findUnique({
-        where: { id: bookingId },
-        include: {
-          ticketItems: {
-            include: { ticketCategory: { select: { name: true } }, slot: { select: { startsAt: true, endsAt: true } } }
-          },
-          addOns: { include: { addOn: { select: { title: true } } } }
-        }
-      });
-      if (!booking) throw new ApiError(404, 'Booking not found.', 'BOOKING_NOT_FOUND');
-      if (booking.paymentStatus === 'CONFIRMED') return booking;
-      if (booking.paymentStatus !== 'PENDING') throw new ApiError(409, 'Booking is no longer pending.', 'PAYMENT_MISMATCH');
-
-      const updated = await transaction.booking.update({
-        where: { id: booking.id },
-        data: { paymentStatus: 'CONFIRMED', holdExpiresAt: null },
-        include: {
-          ticketItems: {
-            include: { ticketCategory: { select: { name: true } }, slot: { select: { startsAt: true, endsAt: true } } }
-          },
-          addOns: { include: { addOn: { select: { title: true } } } }
-        }
-      });
-
-      const ticketsBySlot = new Map<string, number>();
-      for (const ticket of updated.ticketItems) ticketsBySlot.set(ticket.slotId, (ticketsBySlot.get(ticket.slotId) ?? 0) + 1);
-      for (const [slotId, count] of ticketsBySlot) {
-        await transaction.slot.update({ where: { id: slotId }, data: { heldCount: { decrement: count }, bookedCount: { increment: count } } });
-      }
-
-      return updated;
-    });
-
-    response.json(envelope({
-      bookingReference: confirmed.bookingReference,
-      customerName: confirmed.customerName,
-      customerEmail: confirmed.customerEmail,
-      totalPaidInCents: confirmed.totalPaidInCents,
-      ticketCount: confirmed.ticketItems.length,
-      ticketCategories: confirmed.ticketItems.map((t) => t.ticketCategory.name),
-      slot: confirmed.ticketItems[0]?.slot
-    }));
   } catch (error) {
     next(error);
   }

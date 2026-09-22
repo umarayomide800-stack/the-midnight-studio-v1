@@ -7,7 +7,7 @@ import type {
   HoldSlotResponse,
   CheckoutIntentRequest,
   CheckoutIntentResponse,
-  TestConfirmResponse,
+  BookingStatusResponse,
   ApiResponse
 } from '@the-midnight-studio/types';
 
@@ -50,9 +50,6 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload)
     }),
-  confirmTestBooking: (bookingId: string) =>
-    request<TestConfirmResponse>('/checkout/test-confirm', {
-      method: 'POST',
-      body: JSON.stringify({ bookingId })
-    })
+  getBookingStatus: (bookingId: string, customerEmail: string) =>
+    request<BookingStatusResponse>(`/bookings/${bookingId}/status?email=${encodeURIComponent(customerEmail)}`),
 };

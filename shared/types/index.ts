@@ -83,7 +83,12 @@ export interface CheckoutIntentResponse {
   amount?: number;
 }
 
-export interface TestConfirmResponse {
+export interface BookingStatusResponse {
+  status: BookingStatus;
+  confirmation: BookingConfirmation | null;
+}
+
+export interface BookingConfirmation {
   bookingReference: string;
   customerName: string;
   customerEmail: string;

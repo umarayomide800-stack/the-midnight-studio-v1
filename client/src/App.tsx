@@ -1,4 +1,6 @@
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import {
   AlertCircle,
   ArrowDown,
@@ -19,7 +21,11 @@ import {
 } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
-import type { AddOn, Show as ApiShow, Slot, TestConfirmResponse, TicketCategory } from '@the-midnight-studio/types';
+import type { AddOn, BookingConfirmation, Show as ApiShow, Slot, TicketCategory } from '@the-midnight-studio/types';
+
+const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 export interface EnrichedShow extends ApiShow {
   eyebrow: string;
@@ -147,7 +153,7 @@ type BookingState = {
   bookingReference: string | null;
   holdExpiresAt: string | null;
   holdSeconds: number;
-  confirmedTicket: TestConfirmResponse | null;
+  confirmedTicket: BookingConfirmation | null;
 };
 
 type BookingContextType = {
@@ -304,6 +310,8 @@ function BookingWidget() {
   const [holding, setHolding] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
+  const [creatingPayment, setCreatingPayment] = useState(false);
 
   // Generate 7 selectable calendar dates starting from today
   const dates = Array.from({ length: 7 }, (_, index) => {
@@ -341,6 +349,33 @@ function BookingWidget() {
       active = false;
     };
   }, [state.show?.slug, state.date]);
+
+  useEffect(() => {
+    if (state.step !== 5 || !state.bookingId || !state.slot || paymentClientSecret) return;
+    let active = true;
+    setCreatingPayment(true);
+    setActionError(null);
+    const addOnPayload = Object.entries(state.addons)
+      .filter(([, quantity]) => quantity > 0)
+      .map(([addOnId, quantity]) => ({ addOnId, quantity }));
+
+    api.createCheckoutIntent({
+      bookingId: state.bookingId,
+      slotId: state.slot.id,
+      customerEmail: state.guestEmail.trim(),
+      addOns: addOnPayload
+    }).then((intent) => {
+      if (active) setPaymentClientSecret(intent.clientSecret);
+    }).catch((err: Error) => {
+      if (active) setActionError(err.message || 'Payment setup failed. Please try again.');
+    }).finally(() => {
+      if (active) setCreatingPayment(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [state.step, state.bookingId, state.slot, state.guestEmail, state.addons, paymentClientSecret]);
 
   // Calculate ticket pricing
   const basePriceInCents = state.slot?.basePriceInCents ?? 3200;
@@ -402,6 +437,7 @@ function BookingWidget() {
         holdSeconds,
         step: 4
       });
+      setPaymentClientSecret(null);
     } catch (err: any) {
       setActionError(err.message || 'The selected timeslot is no longer available. Please select another slot.');
     } finally {
@@ -409,43 +445,20 @@ function BookingWidget() {
     }
   }
 
-  // Handle final payment/checkout confirmation (Step 5)
-  async function handleCheckout() {
-    if (!state.bookingId || !state.slot) {
-      setActionError('Hold session is missing. Please restart booking.');
-      return;
-    }
-    if (!state.guestName.trim() || !state.guestEmail.trim()) {
-      setActionError('Please enter your name and email address.');
-      return;
-    }
-
+  async function handlePaymentComplete() {
+    if (!state.bookingId) return;
     setCheckingOut(true);
-    setActionError(null);
-
-    try {
-      const addOnPayload = Object.entries(state.addons)
-        .filter(([, quantity]) => quantity > 0)
-        .map(([addOnId, quantity]) => ({ addOnId, quantity }));
-
-      // Create checkout intent
-      await api.createCheckoutIntent({
-        bookingId: state.bookingId,
-        slotId: state.slot.id,
-        customerEmail: state.guestEmail.trim(),
-        addOns: addOnPayload
-      });
-
-      const confirmed = await api.confirmTestBooking(state.bookingId);
-
-      update({
-        confirmedTicket: confirmed
-      });
-    } catch (err: any) {
-      setActionError(err.message || 'Payment processing failed. Please try again.');
-    } finally {
-      setCheckingOut(false);
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const status = await api.getBookingStatus(state.bookingId, state.guestEmail.trim());
+      if (status.confirmation) {
+        update({ confirmedTicket: status.confirmation });
+        setCheckingOut(false);
+        return;
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, 500));
     }
+    setCheckingOut(false);
+    setActionError('Payment was received, but confirmation is still processing. Please refresh shortly.');
   }
 
   if (!state.isOpen) return null;
@@ -1001,40 +1014,31 @@ function BookingWidget() {
                       </div>
                     </div>
 
-                    {/* Payment note */}
                     <div className="mt-5 border border-white/10 bg-[#121314] p-5">
                       <div className="flex items-center gap-3">
                         <ShieldCheck size={20} className="text-ember" />
                         <div>
                           <p className="text-xs font-bold text-white uppercase tracking-wider">Secure reservation</p>
                           <p className="text-[11px] text-white/50">
-                            Test mode enabled. Your hold will be confirmed in a secure checkout and the timeslot capacity will update automatically.
+                            Your payment is processed securely by Stripe. Your booking is confirmed after payment verification.
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="mt-8">
                       <button
                         className="text-xs uppercase tracking-widest text-white/50 hover:text-ember"
                         onClick={() => update({ step: 4 })}
                       >
                         Back
                       </button>
-                      <button
-                        className="ember-button w-full bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-obsidian inline-flex items-center justify-center disabled:opacity-40 sm:w-auto"
-                        disabled={checkingOut || !state.guestName.trim() || !state.guestEmail.trim()}
-                        onClick={handleCheckout}
-                      >
-                        {checkingOut ? (
-                          <>
-                            <Loader2 className="mr-2 animate-spin text-obsidian" size={15} />
-                            Issuing tickets...
-                          </>
-                        ) : (
-                          `Confirm & Pay £${grandTotal}`
-                        )}
-                      </button>
+                      {creatingPayment && <p className="mt-5 text-sm text-white/50">Preparing secure payment...</p>}
+                      {!creatingPayment && paymentClientSecret && stripePromise && (
+                        <Elements stripe={stripePromise} options={{ clientSecret: paymentClientSecret }}>
+                          <PaymentForm onComplete={handlePaymentComplete} disabled={checkingOut} />
+                        </Elements>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1216,6 +1220,46 @@ function FaqPageContent() {
 
 function ContactPageContent({ open }: { open: () => void }) {
   return <div className="mt-12 grid max-w-3xl gap-5 md:grid-cols-2"><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">General enquiries</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:hello@themidnightstudio.example">hello@themidnightstudio.example</a></article><article className="border border-white/10 bg-black/20 p-6"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Bookings</p><h2 className="mt-6 font-display text-2xl">Reserve a room</h2><p className="mt-3 text-sm leading-6 text-white/50">Choose an experience and a live timeslot in under two minutes.</p><button className="ember-button mt-6 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></article></div>;
+}
+
+function PaymentForm({ onComplete, disabled }: { onComplete: () => Promise<void>; disabled: boolean }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submitPayment(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!stripe || !elements) return;
+    setSubmitting(true);
+    setError(null);
+    const result = await stripe.confirmPayment({
+      elements,
+      confirmParams: { return_url: window.location.href },
+      redirect: 'if_required'
+    });
+    if (result.error) {
+      setError(result.error.message ?? 'Payment could not be completed.');
+      setSubmitting(false);
+      return;
+    }
+    await onComplete();
+    setSubmitting(false);
+  }
+
+  return (
+    <form className="mt-6 border border-white/10 bg-[#0d0f12] p-5" onSubmit={submitPayment}>
+      <PaymentElement options={{ layout: 'tabs' }} />
+      {error && <p className="mt-4 text-sm text-fiery" role="alert">{error}</p>}
+      <button
+        className="ember-button mt-6 w-full bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-obsidian disabled:cursor-not-allowed disabled:opacity-50"
+        disabled={disabled || submitting || !stripe || !elements}
+        type="submit"
+      >
+        {submitting ? 'Confirming payment...' : 'Pay securely'}
+      </button>
+    </form>
+  );
 }
 
 function Portal() {

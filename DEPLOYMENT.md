@@ -33,6 +33,7 @@ Guest browser -> Vercel or Netlify (client)
 3. Build with `npm run build --workspace client`.
 4. Publish `client/dist`.
 5. Set `VITE_API_BASE_URL` to the public API origin, for example `https://api.example.com`.
+6. Set `VITE_STRIPE_PUBLISHABLE_KEY` to the matching Stripe publishable key. Keep `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` only on Render.
 6. Restrict the API CORS allowlist to the production frontend origin.
 
 ### API deployment
