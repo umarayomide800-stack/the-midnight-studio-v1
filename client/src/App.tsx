@@ -1188,6 +1188,7 @@ function StudioHeader({ open }: { open: () => void }) {
           <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
         </a>
         <nav aria-label="Main navigation" className="hidden items-center gap-7 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55 lg:flex">
+          <a className="transition hover:text-ember" href="#/">Home</a>
           <a className="transition hover:text-ember" href="#/experiences">Stories</a>
           <a className="transition hover:text-ember" href="#/visit">Visit</a>
           <a className="transition hover:text-ember" href="#/guide">Guide</a>
@@ -1201,7 +1202,7 @@ function StudioHeader({ open }: { open: () => void }) {
           Book tickets
         </button>
       </div>
-      {menuOpen && <nav id="mobile-menu" aria-label="Mobile navigation" className="border-t border-white/10 bg-[#090b0d] px-5 py-4 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={closeMenu}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={closeMenu}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={closeMenu}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={closeMenu}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={closeMenu}>Contact</a></div></nav>}
+      {menuOpen && <nav id="mobile-menu" aria-label="Mobile navigation" className="border-t border-white/10 bg-[#090b0d] px-5 py-4 lg:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/" onClick={closeMenu}>Home</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={closeMenu}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={closeMenu}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={closeMenu}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={closeMenu}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={closeMenu}>Contact</a></div></nav>}
     </header>
   );
 }
@@ -1428,6 +1429,7 @@ function Portal() {
             <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
           </a>
           <nav className="hidden items-center gap-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
+            <a className="transition hover:text-ember" href="#/">Home</a>
             <a className="transition hover:text-ember" href="#/experiences">
               Stories
             </a>
@@ -1455,7 +1457,7 @@ function Portal() {
           </button>
         </div>
       </header>
-      {menuOpen && <nav id="home-mobile-menu" aria-label="Mobile navigation" className="fixed inset-x-0 top-20 z-30 border-b border-white/10 bg-[#090b0d] px-5 py-4 md:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={() => setMenuOpen(false)}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={() => setMenuOpen(false)}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={() => setMenuOpen(false)}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={() => setMenuOpen(false)}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={() => setMenuOpen(false)}>Contact</a></div></nav>}
+          {menuOpen && <nav id="home-mobile-menu" aria-label="Mobile navigation" className="fixed inset-x-0 top-20 z-30 border-b border-white/10 bg-[#090b0d] px-5 py-4 md:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/" onClick={() => setMenuOpen(false)}>Home</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={() => setMenuOpen(false)}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={() => setMenuOpen(false)}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={() => setMenuOpen(false)}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={() => setMenuOpen(false)}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={() => setMenuOpen(false)}>Contact</a></div></nav>}
 
       <section id="top" aria-labelledby="hero-heading" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
         <div className="hero-image absolute inset-0" />
