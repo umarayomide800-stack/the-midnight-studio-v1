@@ -1107,6 +1107,11 @@ function BookingWidget() {
                         Back
                       </button>
                       {creatingPayment && <p className="mt-5 text-sm text-white/50">Preparing secure payment...</p>}
+                      {!creatingPayment && !stripePromise && (
+                        <p className="mt-5 border border-fiery/40 bg-fiery/10 p-4 text-sm text-fiery" role="alert">
+                          Secure payments are not configured for this local app. Add `VITE_STRIPE_PUBLISHABLE_KEY` to `client/.env` and restart Vite.
+                        </p>
+                      )}
                       {!creatingPayment && paymentClientSecret && stripePromise && (
                         <Elements stripe={stripePromise} options={{ clientSecret: paymentClientSecret }}>
                           <PaymentForm onComplete={handlePaymentComplete} disabled={checkingOut} />
