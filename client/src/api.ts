@@ -14,12 +14,21 @@ import type {
 const configuredApiOrigin = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? '';
 const API_BASE = `${configuredApiOrigin}/api/v1`;
 
+async function readApiResponse<T>(response: Response): Promise<ApiResponse<T>> {
+  const text = await response.text();
+  try {
+    return JSON.parse(text) as ApiResponse<T>;
+  } catch {
+    throw new Error(`The API returned an invalid response (${response.status}). Check VITE_API_BASE_URL and make sure the API is running.`);
+  }
+}
+
 async function adminRequest<T>(endpoint: string, adminKey: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey, ...options?.headers }
   });
-  const body = (await response.json()) as ApiResponse<T>;
+  const body = await readApiResponse<T>(response);
   if (!body.success || body.data === undefined) throw new Error(body.error?.message || `Request failed with status ${response.status}`);
   return body.data;
 }
@@ -33,7 +42,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     }
   });
 
-  const body = (await response.json()) as ApiResponse<T>;
+  const body = await readApiResponse<T>(response);
   if (!body.success || !body.data) {
     const errorMsg = body.error?.message || `Request failed with status ${response.status}`;
     const err = new Error(errorMsg) as Error & { code?: string };

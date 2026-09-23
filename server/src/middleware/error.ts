@@ -12,6 +12,15 @@ export class ApiError extends Error {
 }
 
 export const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
+  const errorText = error instanceof Error ? error.message : String(error);
+  if (errorText.includes("Can't reach database server") || errorText.includes('P1001') || errorText.includes('Environment variable not found: DATABASE_URL')) {
+    response.status(503).json({
+      success: false,
+      error: { code: 'DATABASE_UNAVAILABLE', message: 'Booking data is temporarily unavailable. Please try again when the database is online.' }
+    });
+    return;
+  }
+
   if (error instanceof ZodError) {
     response.status(400).json({
       success: false,
