@@ -12,7 +12,11 @@ import type {
 } from '@the-midnight-studio/types';
 
 const configuredApiOrigin = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
-const fallbackApiOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4000';
+const fallbackApiOrigin = import.meta.env.PROD
+  ? 'https://the-midnight-studio-api.onrender.com'
+  : typeof window !== 'undefined'
+  ? window.location.origin
+  : 'http://localhost:4000';
 const API_BASE = `${configuredApiOrigin ?? fallbackApiOrigin}/api/v1`;
 
 async function readApiResponse<T>(response: Response): Promise<ApiResponse<T>> {
