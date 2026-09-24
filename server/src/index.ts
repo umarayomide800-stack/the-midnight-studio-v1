@@ -17,7 +17,19 @@ const clientOrigins = (process.env.CLIENT_ORIGIN ?? 'http://localhost:5173')
   .filter(Boolean);
 
 app.use(helmet());
-app.use(cors({ origin: clientOrigins }));
+app.use(
+  cors({
+    origin: (requestOrigin, callback) => {
+      if (!requestOrigin || clientOrigins.includes(requestOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin is not allowed by CORS.'));
+    },
+    optionsSuccessStatus: 204
+  })
+);
 app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
 app.use(express.json());
 app.use('/api/v1', v1Router);
