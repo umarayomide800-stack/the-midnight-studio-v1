@@ -28,3 +28,13 @@ services:
         sync: false
       - key: OWNER_EMAIL
         sync: false
+
+  - type: static
+    name: the-midnight-studio-web
+    plan: free
+    rootDir: .
+    buildCommand: npm ci && npm run build --workspace client
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://the-midnight-studio-api.onrender.com

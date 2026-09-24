@@ -487,15 +487,24 @@ function BookingWidget() {
   const ticketGroups =
     ticketCategories.length > 0
       ? ticketCategories.map((category, index) => {
-          const names = ['Adults', 'Children 10-17', 'Carer / Accessible'];
-          const fallback = names[index] ?? category.name;
+          const normalized = category.name.toLowerCase();
+          const uiName =
+            normalized.includes('adult') || normalized.includes('general')
+              ? 'Adults'
+              : normalized.includes('child') || normalized.includes('10-17') || normalized.includes('youth')
+              ? 'Children 10-17'
+              : normalized.includes('carer') || normalized.includes('accessible') || normalized.includes('support')
+              ? 'Carer / Accessible'
+              : category.name;
+
           return {
             ...category,
-            uiName: fallback,
+            id: category.id,
+            uiName,
             uiDescription:
-              index === 0
+              uiName === 'Adults'
                 ? '18+ general admission ticket'
-                : index === 1
+                : uiName === 'Children 10-17'
                 ? 'Guests 10-17 require an adult chaperone'
                 : 'Accessible support / carer ticket'
           };
@@ -505,6 +514,10 @@ function BookingWidget() {
           { id: 'child', name: 'Children 10-17', uiName: 'Children 10-17', uiDescription: 'Guests 10-17 require an adult chaperone' },
           { id: 'carer', name: 'Carer / Accessible', uiName: 'Carer / Accessible', uiDescription: 'Accessible support / carer ticket' }
         ];
+
+  const adultCategory = ticketCategories.find((category) => /adult|general/i.test(category.name)) ?? ticketGroups.find((group) => group.uiName === 'Adults');
+  const childCategory = ticketCategories.find((category) => /child|10-17|youth/i.test(category.name)) ?? ticketGroups.find((group) => group.uiName === 'Children 10-17');
+  const carerCategory = ticketCategories.find((category) => /carer|accessible|support/i.test(category.name)) ?? ticketGroups.find((group) => group.uiName === 'Carer / Accessible');
 
   const getSlotStatus = (slot: Slot) => {
     if (slot.remainingCapacity <= 0) return { label: 'Sold out', tone: 'text-white/25 border-white/10 bg-black/20' };
@@ -516,12 +529,13 @@ function BookingWidget() {
   async function handleHoldTickets() {
     if (!state.slot) return;
 
-    const adultId = ticketGroups[0]?.id ?? null;
-    const childId = ticketGroups[1]?.id ?? null;
-    const carerId = ticketGroups[2]?.id ?? null;
+    const adultId = adultCategory?.id ?? null;
+    const childId = childCategory?.id ?? null;
+    const carerId = carerCategory?.id ?? null;
     const adultCount = adultId ? (state.tickets[adultId] ?? 0) : 0;
     const childCount = childId ? (state.tickets[childId] ?? 0) : 0;
     const carerCount = carerId ? (state.tickets[carerId] ?? 0) : 0;
+    const adultsAndChildrenCount = adultCount + childCount;
 
     if (childCount > 0 && adultCount === 0) {
       setActionError('Children aged 10-17 require at least one adult chaperone ticket.');
@@ -533,7 +547,6 @@ function BookingWidget() {
       return;
     }
 
-    const adultsAndChildrenCount = adultCount + childCount;
     setHolding(true);
     setActionError(null);
 

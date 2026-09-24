@@ -28,13 +28,12 @@ Guest browser -> Vercel or Netlify (client)
 
 ### Frontend deployment
 
-1. Create a Vercel or Netlify project rooted at `client/`.
+1. Deploy the `the-midnight-studio-web` static site from `render.yaml`, or create an equivalent Vercel/Netlify project rooted at `client/`.
 2. Install from the repository root so npm workspaces resolve `shared/types`.
-3. Build with `npm run build --workspace client`.
-4. Publish `client/dist`.
-5. Set `VITE_API_BASE_URL` to the public API origin, for example `https://api.example.com`.
-6. Set `VITE_STRIPE_PUBLISHABLE_KEY` to the matching Stripe publishable key. Keep `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` only on Render.
-6. Restrict the API CORS allowlist to the production frontend origin.
+3. Build with `npm run build --workspace client` and publish `client/dist`.
+4. Set `VITE_API_BASE_URL` to the public API origin: `https://the-midnight-studio-api.onrender.com` for the included Render blueprint.
+5. Set `VITE_STRIPE_PUBLISHABLE_KEY` to the matching Stripe publishable key. Keep `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` only on Render.
+6. Set the API service's `CLIENT_ORIGIN` to the actual public frontend origin, then redeploy the frontend after changing `VITE_API_BASE_URL` because Vite embeds it at build time.
 
 ### API deployment
 

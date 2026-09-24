@@ -11,15 +11,19 @@ import type {
   ApiResponse
 } from '@the-midnight-studio/types';
 
-const configuredApiOrigin = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? '';
-const API_BASE = `${configuredApiOrigin}/api/v1`;
+const configuredApiOrigin = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '');
+const fallbackApiOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4000';
+const API_BASE = `${configuredApiOrigin ?? fallbackApiOrigin}/api/v1`;
 
 async function readApiResponse<T>(response: Response): Promise<ApiResponse<T>> {
   const text = await response.text();
   try {
     return JSON.parse(text) as ApiResponse<T>;
   } catch {
-    throw new Error(`The API returned an invalid response (${response.status}). Check VITE_API_BASE_URL and make sure the API is running.`);
+    const sameOriginHint = !configuredApiOrigin
+      ? ' The frontend is using the same-origin fallback, so the API is likely not mounted on this host. Set VITE_API_BASE_URL to the backend URL.'
+      : '';
+    throw new Error(`The API returned an invalid response (${response.status}). Check VITE_API_BASE_URL and make sure the API is running.${sameOriginHint}`);
   }
 }
 
