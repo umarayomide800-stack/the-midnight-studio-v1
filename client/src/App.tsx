@@ -207,6 +207,7 @@ type BookingState = {
   isOpen: boolean;
   step: BookingStep;
   show: EnrichedShow;
+  hasGeneralAdmission: boolean;
   date: string;
   slot: Slot | null;
   tickets: Record<string, number>;
@@ -278,6 +279,7 @@ function BookingProvider({ children }: { children: ReactNode }) {
     isOpen: false,
     step: 1,
     show: defaultShow,
+    hasGeneralAdmission: true,
     date: '',
     slot: null,
     tickets: {},
@@ -304,6 +306,7 @@ function BookingProvider({ children }: { children: ReactNode }) {
       isOpen: true,
       show,
       step: 1,
+      hasGeneralAdmission: true,
       slot: null,
       tickets: initialTickets,
       addons: {},
@@ -323,6 +326,7 @@ function BookingProvider({ children }: { children: ReactNode }) {
     setState((current) => ({
       ...current,
       step: 1,
+      hasGeneralAdmission: true,
       slot: null,
       tickets: adultCat ? { [adultCat.id]: 2 } : {},
       addons: {},
@@ -480,9 +484,56 @@ function BookingWidget() {
   const ticketLines = ticketCategories.filter((category) => (state.tickets[category.id] ?? 0) > 0);
   const addOnLines = addOns.filter((item) => (state.addons[item.id] ?? 0) > 0);
 
+  const ticketGroups =
+    ticketCategories.length > 0
+      ? ticketCategories.map((category, index) => {
+          const names = ['Adults', 'Children 10-17', 'Carer / Accessible'];
+          const fallback = names[index] ?? category.name;
+          return {
+            ...category,
+            uiName: fallback,
+            uiDescription:
+              index === 0
+                ? '18+ general admission ticket'
+                : index === 1
+                ? 'Guests 10-17 require an adult chaperone'
+                : 'Accessible support / carer ticket'
+          };
+        })
+      : [
+          { id: 'adult', name: 'Adults', uiName: 'Adults', uiDescription: '18+ general admission ticket' },
+          { id: 'child', name: 'Children 10-17', uiName: 'Children 10-17', uiDescription: 'Guests 10-17 require an adult chaperone' },
+          { id: 'carer', name: 'Carer / Accessible', uiName: 'Carer / Accessible', uiDescription: 'Accessible support / carer ticket' }
+        ];
+
+  const getSlotStatus = (slot: Slot) => {
+    if (slot.remainingCapacity <= 0) return { label: 'Sold out', tone: 'text-white/25 border-white/10 bg-black/20' };
+    if (slot.remainingCapacity <= 5) return { label: 'Low capacity', tone: 'text-fiery border-fiery/40 bg-fiery/10' };
+    return { label: 'Available', tone: 'text-emerald-300 border-emerald-500/40 bg-emerald-500/10' };
+  };
+
   // Handle slot hold reservation (Step 3 -> Step 4)
   async function handleHoldTickets() {
     if (!state.slot) return;
+
+    const adultId = ticketGroups[0]?.id ?? null;
+    const childId = ticketGroups[1]?.id ?? null;
+    const carerId = ticketGroups[2]?.id ?? null;
+    const adultCount = adultId ? (state.tickets[adultId] ?? 0) : 0;
+    const childCount = childId ? (state.tickets[childId] ?? 0) : 0;
+    const carerCount = carerId ? (state.tickets[carerId] ?? 0) : 0;
+
+    if (childCount > 0 && adultCount === 0) {
+      setActionError('Children aged 10-17 require at least one adult chaperone ticket.');
+      return;
+    }
+
+    if (carerCount > adultsAndChildrenCount) {
+      setActionError('Carer tickets cannot exceed the number of guests in the booking.');
+      return;
+    }
+
+    const adultsAndChildrenCount = adultCount + childCount;
     setHolding(true);
     setActionError(null);
 
@@ -684,51 +735,67 @@ function BookingWidget() {
                 {state.step === 1 && (
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-fiery">
-                      Step 1 / Choose the room
+                      Step 1 / Admission check
                     </p>
-                    <h3 className="mt-3 font-display text-3xl">Where are you entering?</h3>
+                    <h3 className="mt-3 font-display text-3xl">Do you already have general admission?</h3>
 
-                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                      {shows.map((show) => (
-                        <button
-                          className={`relative min-h-36 overflow-hidden border p-4 text-left transition ${
-                            state.show.slug === show.slug ? 'border-ember ring-1 ring-ember' : 'border-white/10 hover:border-white/30'
-                          }`}
-                          onClick={() => update({ show })}
-                          key={show.slug}
-                        >
-                          <img className="absolute inset-0 h-full w-full object-cover opacity-35" src={show.image} alt="" />
-                          <div className={`absolute inset-0 bg-gradient-to-t ${show.accent} opacity-60`} />
-                          <span className="relative z-10 block font-display text-lg leading-tight">{show.title}</span>
-                          <span className="relative z-10 mt-2 block text-[10px] uppercase tracking-wider text-white/60">
-                            {show.durationMinutes} min · Age {show.ageRestriction}+
-                          </span>
-                        </button>
-                      ))}
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                      <button
+                        className={`border p-5 text-left transition ${
+                          state.hasGeneralAdmission ? 'border-ember bg-ember/10 ring-1 ring-ember' : 'border-white/10 hover:border-white/30'
+                        }`}
+                        onClick={() => update({ hasGeneralAdmission: true })}
+                      >
+                        <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Need general admission</div>
+                        <div className="mt-3 font-display text-2xl">Add castle entry</div>
+                        <p className="mt-2 text-sm text-white/60">This booking includes the standard Warwick Castle admission plus the separate Dungeon timed-entry ticket.</p>
+                      </button>
+
+                      <button
+                        className={`border p-5 text-left transition ${
+                          !state.hasGeneralAdmission ? 'border-ember bg-ember/10 ring-1 ring-ember' : 'border-white/10 hover:border-white/30'
+                        }`}
+                        onClick={() => update({ hasGeneralAdmission: false })}
+                      >
+                        <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Already have admission</div>
+                        <div className="mt-3 font-display text-2xl">Dungeon only</div>
+                        <p className="mt-2 text-sm text-white/60">You already hold a valid Warwick Castle ticket and only need to reserve the Dungeon slot.</p>
+                      </button>
                     </div>
 
-                    <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">Select a date</p>
-                    <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
-                      {dates.map((date) => {
-                        const value = toLocalDateValue(date);
-                        const isSelected = state.date === value;
-                        return (
-                          <button
-                            className={`border px-2 py-3 text-center transition ${
-                              isSelected
-                                ? 'border-ember bg-ember text-obsidian'
-                                : 'border-white/10 text-white/60 hover:border-ember'
-                            }`}
-                            onClick={() => update({ date: value, slot: null })}
-                            key={value}
-                          >
-                            <span className="block text-[9px] uppercase">
-                              {date.toLocaleDateString('en-GB', { weekday: 'short' })}
-                            </span>
-                            <strong className="mt-1 block font-display text-xl">{date.getDate()}</strong>
-                          </button>
-                        );
-                      })}
+                    <div className="mt-8 border border-white/10 bg-black/20 p-4 text-sm text-white/65">
+                      <p className="font-bold uppercase tracking-[0.2em] text-[10px] text-white/45">Castle Dungeon rules</p>
+                      <ul className="mt-3 space-y-2 leading-6">
+                        <li>• Standard admission is required in addition to the timed Dungeon ticket.</li>
+                        <li>• Timed-entry slots are limited and should be booked in advance.</li>
+                        <li>• Recommended for ages 10+, and guests under 18 must be accompanied by an adult.</li>
+                      </ul>
+                    </div>
+
+                    <div className="mt-8">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/50">Select a date</p>
+                      <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-7">
+                        {dates.map((date) => {
+                          const value = toLocalDateValue(date);
+                          const isSelected = state.date === value;
+                          return (
+                            <button
+                              className={`border px-2 py-3 text-center transition ${
+                                isSelected
+                                  ? 'border-ember bg-ember text-obsidian'
+                                  : 'border-white/10 text-white/60 hover:border-ember'
+                              }`}
+                              onClick={() => update({ date: value, slot: null })}
+                              key={value}
+                            >
+                              <span className="block text-[9px] uppercase">
+                                {date.toLocaleDateString('en-GB', { weekday: 'short' })}
+                              </span>
+                              <strong className="mt-1 block font-display text-xl">{date.getDate()}</strong>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="mt-8 flex justify-end">
@@ -777,23 +844,22 @@ function BookingWidget() {
                               minute: '2-digit'
                             });
                             const isSelected = state.slot?.id === slot.id;
-                            const isSoldOut = slot.remainingCapacity <= 0;
-                            const isLow = slot.remainingCapacity > 0 && slot.remainingCapacity <= 5;
+                            const status = getSlotStatus(slot);
 
                             return (
                               <button
-                                disabled={isSoldOut}
+                                disabled={slot.remainingCapacity <= 0}
                                 className={`border px-3 py-4 text-left transition ${
                                   isSelected
                                     ? 'border-ember bg-ember text-obsidian ring-1 ring-ember'
-                                    : isSoldOut
+                                    : slot.remainingCapacity <= 0
                                     ? 'cursor-not-allowed border-white/5 text-white/20 line-through bg-black/20'
                                     : 'border-white/10 text-white/80 hover:border-ember bg-white/[0.01]'
                                 }`}
                                 onClick={() => update({ slot })}
                                 key={slot.id}
                               >
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between gap-2">
                                   <span className="font-mono text-base font-bold">{timeStr}</span>
                                   {slot.isPeak && (
                                     <span
@@ -805,20 +871,23 @@ function BookingWidget() {
                                     </span>
                                   )}
                                 </div>
+                                <span className={`mt-2 inline-flex items-center border px-2 py-1 text-[9px] font-bold uppercase tracking-[0.18em] ${status.tone}`}>
+                                  {status.label}
+                                </span>
                                 <span
                                   className={`mt-2 block text-[9px] uppercase tracking-wider ${
                                     isSelected
                                       ? 'text-obsidian/80 font-bold'
-                                      : isSoldOut
+                                      : slot.remainingCapacity <= 0
                                       ? 'text-white/20'
-                                      : isLow
+                                      : slot.remainingCapacity <= 5
                                       ? 'text-fiery font-bold'
                                       : 'text-white/40'
                                   }`}
                                 >
-                                  {isSoldOut
-                                    ? 'Sold out'
-                                    : isLow
+                                  {slot.remainingCapacity <= 0
+                                    ? 'No spaces left'
+                                    : slot.remainingCapacity <= 5
                                     ? `Few left (${slot.remainingCapacity})`
                                     : `${slot.remainingCapacity} spots`}
                                 </span>
@@ -854,18 +923,18 @@ function BookingWidget() {
                     <h3 className="mt-3 font-display text-3xl">How long will you stay?</h3>
 
                     <div className="mt-7 space-y-3">
-                      {ticketCategories.map((category) => {
+                      {ticketGroups.map((category) => {
                         const count = state.tickets[category.id] ?? 0;
-                        const price = getCategoryPrice(category);
+                        const price = getCategoryPrice(category as TicketCategory);
                         return (
                           <div
                             className="flex items-center justify-between border border-white/10 bg-white/[0.02] p-4 transition hover:border-white/20"
                             key={category.id}
                           >
                             <div>
-                              <p className="font-display text-lg">{category.name}</p>
+                              <p className="font-display text-lg">{category.uiName}</p>
                               <p className="mt-1 text-xs text-white/40">
-                                {category.description} · £{price}
+                                {category.uiDescription} · £{price}
                               </p>
                             </div>
                             <div className="flex items-center gap-3">
@@ -901,6 +970,14 @@ function BookingWidget() {
                           </div>
                         );
                       })}
+                    </div>
+                    <div className="mt-5 border border-white/10 bg-black/20 p-4 text-xs leading-6 text-white/60">
+                      <p className="font-bold uppercase tracking-[0.2em] text-[10px] text-ember">Validation rules</p>
+                      <ul className="mt-2 space-y-1">
+                        <li>• Children 10-17 require at least one adult ticket.</li>
+                        <li>• Carer / accessible tickets must not exceed the total guest count.</li>
+                        <li>• Bookings are limited by slot capacity and must be confirmed before the hold expires.</li>
+                      </ul>
                     </div>
 
                     <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1402,6 +1479,124 @@ function ManageBookingPage() {
   return <main className="dungeon-shell min-h-screen px-6 pb-24 pt-36 text-white lg:px-12"><div className="mx-auto max-w-3xl"><a className="text-xs uppercase tracking-widest text-white/50 hover:text-ember" href="#/">Back to The Midnight Studio</a><h1 className="mt-8 font-display text-5xl">Manage your booking</h1><p className="mt-4 text-white/55">Use your booking reference and email address to view or cancel a reservation.</p><form className="mt-10 grid gap-4 border border-white/10 bg-black/20 p-6 sm:grid-cols-[1fr_1fr_auto] sm:items-end" onSubmit={lookup}><label className="text-xs uppercase tracking-widest text-white/50">Reference<input className="booking-input mt-2" value={reference} onChange={(event) => setReference(event.target.value)} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><button className="ember-button bg-ember px-5 py-4 text-xs font-bold uppercase tracking-widest text-obsidian" type="submit">Find booking</button></form>{message && <p className="mt-5 border border-ember/30 p-4 text-sm text-ember" role="status">{message}</p>}{booking && <article className="mt-8 border border-white/10 bg-black/20 p-6"><div className="flex flex-wrap justify-between gap-4"><div><p className="text-[10px] uppercase tracking-widest text-white/40">Reference</p><p className="mt-2 font-mono text-ember">{booking.bookingReference}</p></div><p className="text-sm uppercase tracking-widest text-white/60">{booking.paymentStatus}</p></div><p className="mt-6 text-sm text-white/60">{booking.ticketItems.length} tickets · £{(booking.totalPaidInCents / 100).toFixed(2)}</p>{booking.paymentStatus !== 'CANCELLED' && <button className="mt-7 border border-fiery/50 px-5 py-3 text-xs font-bold uppercase tracking-widest text-fiery hover:bg-fiery/10" onClick={() => void cancel()}>Cancel booking</button>}</article>}</div></main>;
 }
 
+function GothicBadge({ children }: { children: ReactNode }) {
+  return <span className="warning-badge">{children}</span>;
+}
+
+function HeroStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded border border-white/10 bg-black/20 px-4 py-3 backdrop-blur-sm">
+      <div className="font-display text-2xl text-white">{value}</div>
+      <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-white/55">{label}</div>
+    </div>
+  );
+}
+
+function CastleDungeonHero() {
+  return (
+    <section id="top" aria-labelledby="hero-heading" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
+      <div className="hero-image absolute inset-0" />
+      <div className="mist-overlay absolute inset-0" />
+      <div className="stone-noise absolute inset-0 opacity-30" />
+
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-4xl">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <GothicBadge>AGES 10+ • LIVE ACTORS</GothicBadge>
+            <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/45">Warwick Castle</span>
+          </div>
+
+          <h1 id="hero-heading" className="max-w-4xl font-display text-4xl leading-[0.9] tracking-tight text-white sm:text-6xl lg:text-[7rem]">
+            The Castle Dungeon
+            <br />
+            <span className="text-ember">Where the past still breathes.</span>
+          </h1>
+
+          <p className="mt-8 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
+            A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Your visit requires a Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket.
+          </p>
+
+          <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <button
+              className="ember-button inline-flex items-center justify-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] sm:w-auto w-full"
+              onClick={() => open()}
+            >
+              Reserve timed entry <ArrowRight size={16} />
+            </button>
+            <a
+              className="inline-flex items-center justify-center gap-2 px-3 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/70 transition hover:text-ember sm:justify-start"
+              href="#overview"
+            >
+              Explore the attraction <ArrowDown size={16} />
+            </a>
+          </div>
+        </motion.div>
+
+        <div className="mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/20 pt-5 text-[10px] uppercase tracking-[0.16em] text-white/50 sm:mt-24">
+          <HeroStat value="300+" label="Years of history" />
+          <HeroStat value="Timed" label="Entry slots" />
+          <HeroStat value="10+" label="Recommended age" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AttractionOverviewSection() {
+  const features = [
+    {
+      title: '300+ years of history',
+      text: 'Walk through a live retelling of plague, torture, and the darker chapters of local history told in an underground chamber of fear.'
+    },
+    {
+      title: 'Live actor encounters',
+      text: 'The Dungeon is designed as a live-actor immersive experience, where the environment, narration, and performances combine into a relentless walk-through encounter.'
+    },
+    {
+      title: 'Underground atmosphere',
+      text: 'Expect dark corridors, steep spiral staircases, and an immersive atmosphere built for a tense, atmospheric descent through the vaults.'
+    }
+  ];
+
+  return (
+    <section id="overview" aria-labelledby="overview-heading" className="stone-section relative border-t border-white/10 px-6 py-20 lg:px-12 lg:py-28">
+      <div className="mx-auto max-w-7xl">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.25 }} variants={fadeUp} className="mb-12 max-w-3xl">
+          <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Attraction overview</p>
+          <h2 id="overview-heading" className="font-display text-4xl leading-tight sm:text-6xl">
+            A descent into
+            <br />
+            <span className="text-ember">plague, punishment, and legend.</span>
+          </h2>
+        </motion.div>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {features.map((feature, index) => (
+            <motion.article
+              key={feature.title}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{
+                ...fadeUp,
+                visible: { ...fadeUp.visible, transition: { delay: index * 0.1, duration: 0.7 } }
+              }}
+              className="gothic-panel rounded-none p-6"
+            >
+              <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-4">
+                <span className="font-mono text-xs text-ember">0{index + 1}</span>
+                <span className="h-2 w-2 rounded-full bg-ember shadow-ember" aria-hidden="true" />
+              </div>
+              <h3 className="font-display text-2xl text-white">{feature.title}</h3>
+              <p className="mt-4 text-sm leading-7 text-white/60">{feature.text}</p>
+            </motion.article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Portal() {
   const [selectedShow, setSelectedShow] = useState<EnrichedShow | null>(null);
   const [advisoryShow, setAdvisoryShow] = useState<EnrichedShow | null>(null);
@@ -1464,51 +1659,9 @@ function Portal() {
       </header>
           {menuOpen && <nav id="home-mobile-menu" aria-label="Mobile navigation" className="fixed inset-x-0 top-20 z-30 border-b border-white/10 bg-[#090b0d] px-5 py-4 md:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/" onClick={() => setMenuOpen(false)}>Home</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={() => setMenuOpen(false)}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={() => setMenuOpen(false)}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={() => setMenuOpen(false)}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={() => setMenuOpen(false)}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={() => setMenuOpen(false)}>Contact</a></div></nav>}
 
-      <section id="top" aria-labelledby="hero-heading" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
-        <div className="hero-image absolute inset-0" />
-        <div className="hero-vignette absolute inset-0" />
-        <div className="stone-noise absolute inset-0 opacity-30" />
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-3xl">
-            <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">
-              <span className="h-px w-10 bg-ember" /> Beneath the old quarter
-            </div>
-            <h1 id="hero-heading" className="max-w-4xl font-display text-4xl leading-[0.9] tracking-tight text-white sm:text-6xl lg:text-[7.4rem]">
-              Enter the room.
-              <br />
-              <span className="text-ember">Stay until it remembers you.</span>
-            </h1>
-            <p className="mt-8 max-w-xl text-base leading-7 text-white/65 sm:text-lg">
-              Entry requires a standard Warwick Castle admission ticket plus a separate timed-entry ticket for the Dungeon itself, with limited capacity and advance booking strongly recommended.
-            </p>
-            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
-              <button
-                className="ember-button inline-flex items-center justify-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] sm:w-auto w-full"
-                onClick={() => open()}
-              >
-                Reserve your timed entry <ArrowRight size={16} />
-              </button>
-              <a
-                className="inline-flex items-center justify-center gap-2 px-3 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/65 transition hover:text-ember sm:justify-start"
-                href="#/experiences"
-              >
-                Explore the stories <ArrowDown size={16} />
-              </a>
-            </div>
-          </motion.div>
-          <div className="mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/20 pt-5 text-[10px] uppercase tracking-[0.16em] text-white/50 sm:mt-24">
-            <span>
-              <strong className="block font-display text-xl text-white">300+</strong> years of history
-            </span>
-            <span>
-              <strong className="block font-display text-xl text-white">Timed</strong> entry slots
-            </span>
-            <span>
-              <strong className="block font-display text-xl text-white">10+</strong> recommended
-            </span>
-          </div>
-        </div>
-      </section>
+      <CastleDungeonHero />
+
+      <AttractionOverviewSection />
 
       <section id="experiences" aria-labelledby="experiences-heading" className="stone-section relative px-6 py-24 lg:px-12 lg:py-32">
         <div className="mx-auto max-w-7xl">

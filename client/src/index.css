@@ -86,6 +86,20 @@ summary::-webkit-details-marker { display: none; }
   box-shadow: 0 16px 35px rgba(0,0,0,.38);
 }
 
+@layer components {
+  .gothic-panel {
+    @apply border border-white/10 bg-[#111315]/85 backdrop-blur-sm shadow-gothic;
+  }
+
+  .warning-badge {
+    @apply inline-flex items-center gap-2 rounded-full border border-ember/40 bg-ember/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.28em] text-ember;
+  }
+
+  .mist-overlay {
+    @apply absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.14),transparent_22%),linear-gradient(90deg,rgba(7,8,10,0.94)_0%,rgba(7,8,10,0.8)_32%,rgba(7,8,10,0.5)_58%,rgba(7,8,10,0.2)_100%)] opacity-90;
+  }
+}
+
 .ember-button {
   position: relative;
   overflow: hidden;
