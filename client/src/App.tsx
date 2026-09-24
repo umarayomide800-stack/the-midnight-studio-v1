@@ -1222,19 +1222,19 @@ function StudioPage({ page, shows, open }: { page: Exclude<StudioPageName, 'home
       description: 'Explore our adult BDSM-inspired experiences, compare the atmosphere, and choose a room built around consent, roles, and ritual.'
     },
     visit: {
-      eyebrow: 'Your night begins here',
-      title: 'Everything you need\nbefore arrival.',
-      description: 'Find us in the Old Quarter, plan your arrival, and know what the night asks of you before you cross the threshold.'
+      eyebrow: 'Plan your visit',
+      title: 'Before you descend\ninto the dungeon.',
+      description: 'Check your ticket requirement, reserve a timed slot, and know what to expect before you arrive at the attraction.'
     },
     guide: {
-      eyebrow: 'Plan your descent',
-      title: 'Know the rules\nbefore the door opens.',
-      description: 'Arrive ready, leave room for the unexpected, and give yourself enough time to cross from the street into the story.'
+      eyebrow: 'Know before you go',
+      title: 'The details you need\nbefore the doors open.',
+      description: 'Entry requires a standard Warwick Castle ticket and a separate timed-entry Dungeon ticket, with limited capacity and accessibility information to review in advance.'
     },
     faq: {
       eyebrow: 'The practical haunting',
       title: 'Questions for\nthe living.',
-      description: 'Straight answers about accessibility, timing, age guidance, changes, and what happens inside.'
+      description: 'Straight answers about ticketing, capacity, age guidance, and accessibility for the Dungeon experience.'
     },
     contact: {
       eyebrow: 'Speak to the studio',
@@ -1292,17 +1292,17 @@ function ExperiencesPageContent({ shows, open }: { shows: EnrichedShow[]; open: 
 
 function VisitPageContent({ open }: { open: () => void }) {
   return <div className="mt-12 grid gap-5 md:grid-cols-3">
-    {[['Find the entrance', 'The Old Quarter', 'Your confirmation email includes the final arrival details. Look for the studio mark and arrive 20 minutes early.'], ['Opening hours', 'After dark', 'Sessions run throughout the evening. Choose a date in the booking flow to see live availability.'], ['Group size', '2 to 12 guests', 'Keep your party together and let us know in advance if your group has access requirements.']].map(([title, value, text]) => <article className="border border-white/10 bg-black/20 p-6" key={title}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">{title}</p><h2 className="mt-8 font-display text-2xl">{value}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}
-    <div className="md:col-span-3"><button className="ember-button bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] text-obsidian" onClick={open}>Find a time <ArrowRight className="ml-2 inline" size={16} /></button></div>
+    {[['Entry ticket', 'Castle admission + dungeon timed ticket', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus an additional timed-entry ticket for the Dungeon itself.'], ['Booking', 'Reserve in advance', 'Because capacity inside the underground rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'], ['Age guidance', '10+ recommended', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.']].map(([title, value, text]) => <article className="border border-white/10 bg-black/20 p-6" key={title}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">{title}</p><h2 className="mt-8 font-display text-2xl">{value}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}
+    <div className="md:col-span-3"><button className="ember-button bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] text-obsidian" onClick={open}>Check availability <ArrowRight className="ml-2 inline" size={16} /></button></div>
   </div>;
 }
 
 function GuidePageContent({ open }: { open: () => void }) {
-  return <div className="mt-12 grid gap-3 sm:grid-cols-2">{[['01', 'Arrive early', 'Please arrive 20 minutes before your booked time for check-in and briefing.'], ['02', 'Dress for movement', 'Wear closed shoes and clothes you can move through narrow spaces in.'], ['03', 'Stay together', 'Our experiences are designed for groups. Keep your party together once inside.'], ['04', 'Ask for help', 'Tell the team about access needs or sensory concerns before you enter.']].map(([number, title, text]) => <article className="border border-white/10 bg-black/20 p-6" key={number}><span className="font-mono text-xs text-ember">{number}</span><h2 className="mt-8 font-display text-2xl">{title}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}<div className="sm:col-span-2"><button className="ember-button mt-5 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]" onClick={open}>Check availability</button></div></div>;
+  return <div className="mt-12 grid gap-3 sm:grid-cols-2">{[['01', 'Ticket requirement', 'Entry requires a standard Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket.'], ['02', 'Book ahead', 'Timed entries sell out quickly because the underground rooms have limited capacity. Reserve your slot in advance or when you arrive.'], ['03', 'Age guidance', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'], ['04', 'Access notes', 'Dark spaces and steep spiral staircases are part of the experience, though the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors.']].map(([number, title, text]) => <article className="border border-white/10 bg-black/20 p-6" key={number}><span className="font-mono text-xs text-ember">{number}</span><h2 className="mt-8 font-display text-2xl">{title}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}<div className="sm:col-span-2"><button className="ember-button mt-5 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]" onClick={open}>Check availability</button></div></div>;
 }
 
 function FaqPageContent() {
-  return <div className="mt-12 max-w-3xl space-y-3">{[['Is this suitable for everyone?', 'Each story has its own age guidance and sensory notes. Read the notes before booking, and contact the team if you need specific access information.'], ['How long should I allow?', 'Plan for around 90 minutes at the venue, including arrival, briefing, and the experience itself.'], ['Can I change my booking?', 'Contact the studio as soon as possible with your booking reference. We will help where availability allows.'], ['What happens if I feel overwhelmed?', 'Tell an actor or member of the team at any time. Your comfort matters, and stepping out is always permitted.']].map(([question, answer]) => <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}><summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg">{question}<span className="text-2xl text-ember transition group-open:rotate-45" aria-hidden="true">+</span></summary><p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p></details>)}</div>;
+  return <div className="mt-12 max-w-3xl space-y-3">{[['What do I need to book?', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus an additional timed-entry ticket for the Dungeon itself.'], ['Do I need to book in advance?', 'Yes, timed entry slots must be reserved in advance because capacity inside the underground rooms is limited.'], ['Is it suitable for children?', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'], ['What is the attraction like?', 'It is a live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history.'], ['Is it accessible?', 'The experience includes dark spaces and steep spiral staircases, although the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors via the site.']].map(([question, answer]) => <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}><summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg">{question}<span className="text-2xl text-ember transition group-open:rotate-45" aria-hidden="true">+</span></summary><p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p></details>)}</div>;
 }
 
 function ContactPageContent({ open }: { open: () => void }) {
@@ -1479,14 +1479,14 @@ function Portal() {
               <span className="text-ember">Stay until it remembers you.</span>
             </h1>
             <p className="mt-8 max-w-xl text-base leading-7 text-white/65 sm:text-lg">
-              Six immersive BDSM-inspired experiences built around consent, atmosphere, and the freedom to choose your limits.
+              Entry requires a standard Warwick Castle admission ticket plus a separate timed-entry ticket for the Dungeon itself, with limited capacity and advance booking strongly recommended.
             </p>
             <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
               <button
                 className="ember-button inline-flex items-center justify-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] sm:w-auto w-full"
                 onClick={() => open()}
               >
-                Book tickets now <ArrowRight size={16} />
+                Reserve your timed entry <ArrowRight size={16} />
               </button>
               <a
                 className="inline-flex items-center justify-center gap-2 px-3 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/65 transition hover:text-ember sm:justify-start"
@@ -1498,13 +1498,13 @@ function Portal() {
           </motion.div>
           <div className="mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/20 pt-5 text-[10px] uppercase tracking-[0.16em] text-white/50 sm:mt-24">
             <span>
-              <strong className="block font-display text-xl text-white">06</strong> live stories
+              <strong className="block font-display text-xl text-white">300+</strong> years of history
             </span>
             <span>
-              <strong className="block font-display text-xl text-white">75</strong> minutes inside
+              <strong className="block font-display text-xl text-white">Timed</strong> entry slots
             </span>
             <span>
-              <strong className="block font-display text-xl text-white">16+</strong> recommended
+              <strong className="block font-display text-xl text-white">10+</strong> recommended
             </span>
           </div>
         </div>
@@ -1595,19 +1595,19 @@ function Portal() {
           <div>
             <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">Your night begins here</p>
             <h2 id="visit-heading" className="max-w-2xl font-display text-4xl leading-tight sm:text-6xl">
-              Bring the ones who
+              Reserve your
               <br />
-              <span className="text-fiery">cannot leave quietly.</span>
+              <span className="text-fiery">timed entry.</span>
             </h2>
             <div className="mt-8 flex flex-wrap gap-7 text-sm text-white/55">
               <span className="flex items-center gap-2">
-                <MapPin size={16} className="text-ember" /> The Old Quarter
+                <MapPin size={16} className="text-ember" /> Warwick Castle
               </span>
               <span className="flex items-center gap-2">
-                <CalendarDays size={16} className="text-ember" /> Open after dark
+                <CalendarDays size={16} className="text-ember" /> Castle admission + dungeon ticket
               </span>
               <span className="flex items-center gap-2">
-                <BellRing size={16} className="text-ember" /> Groups of 2-12
+                <BellRing size={16} className="text-ember" /> Capacity is limited
               </span>
             </div>
           </div>
@@ -1615,7 +1615,7 @@ function Portal() {
             className="ember-button inline-flex items-center justify-center gap-3 bg-ember px-7 py-4 text-xs font-bold uppercase tracking-[0.16em] text-obsidian"
             onClick={() => open()}
           >
-            Find a time <ArrowRight size={16} />
+            Check availability <ArrowRight size={16} />
           </button>
           <a
             className="inline-flex items-center justify-center border border-white/20 px-7 py-4 text-xs font-bold uppercase tracking-[0.16em] text-white/70 transition hover:border-ember hover:text-ember"
@@ -1636,7 +1636,7 @@ function Portal() {
               <span className="text-ember">before the door opens.</span>
             </h2>
             <p className="mt-6 max-w-md text-sm leading-7 text-white/55">
-              Arrive ready, leave room for the unexpected, and give yourself enough time to cross from the street into the story.
+              Entry requires a standard Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket, with limited capacity and accessibility guidance to review before arrival.
             </p>
             <button
               className="ember-button mt-8 inline-flex items-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]"
@@ -1647,10 +1647,10 @@ function Portal() {
           </div>
           <ol className="grid gap-3 sm:grid-cols-2">
             {[
-              ['01', 'Arrive early', 'Please arrive 20 minutes before your booked time for check-in and briefing.'],
-              ['02', 'Dress for movement', 'Wear closed shoes and clothes you can move through narrow, atmospheric spaces in.'],
-              ['03', 'Stay together', 'Our experiences are designed for groups. Keep your party together once inside.'],
-              ['04', 'Ask for help', 'Tell the team about access needs, sensory concerns, or anything that would help you feel comfortable.']
+              ['01', 'Ticket requirement', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket.'],
+              ['02', 'Book ahead', 'Timed entries are limited by capacity inside the underground rooms, so reserve a slot in advance or when you arrive.'],
+              ['03', 'Age guidance', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'],
+              ['04', 'Access notes', 'The experience includes dark spaces and steep spiral staircases, while the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors.']
             ].map(([number, title, description]) => (
               <li className="border border-white/10 bg-black/20 p-6" key={number}>
                 <span className="font-mono text-xs text-ember">{number}</span>
@@ -1674,10 +1674,11 @@ function Portal() {
           </div>
           <div className="space-y-3">
             {[
-              ['Is this suitable for everyone?', 'Each story has its own age guidance and sensory notes. Read the notes on an experience card before booking, and contact the team if you need specific access information.'],
-              ['How long should I allow?', 'Plan for around 90 minutes at the venue, including arrival, briefing, and the experience itself. Your exact duration depends on the story you choose.'],
-              ['Can I change my booking?', 'Contact the studio as soon as possible with your booking reference. We will help where availability allows.'],
-              ['What happens if I feel overwhelmed?', 'You can tell an actor or member of the team at any time. Your comfort matters, and stepping out is always permitted.']
+              ['What do I need to book?', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus an additional timed-entry ticket for the Dungeon itself.'],
+              ['Do I need to book in advance?', 'Yes. Because capacity inside the underground rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'],
+              ['Is it suitable for children?', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'],
+              ['What is the attraction like?', 'It is a live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history.'],
+              ['Is it accessible?', 'The experience features dark spaces and steep spiral staircases, though the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors via the site.']
             ].map(([question, answer]) => (
               <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}>
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg marker:hidden">
