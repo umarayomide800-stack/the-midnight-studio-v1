@@ -1635,28 +1635,28 @@ function Portal() {
       </a>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
-          <a className="group flex items-center gap-3" href="#/" aria-label="The Midnight Studio home">
+          <a className="group flex items-center gap-3" href="#/" aria-label="The Castle Dungeon home">
             <span className="grid h-9 w-9 place-items-center border border-ember/70 bg-[#0c0f13] text-ember transition group-hover:bg-ember group-hover:text-obsidian">
-              <Sparkles size={16} />
+              <Skull size={17} />
             </span>
-            <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE MIDNIGHT STUDIO</span>
+            <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE CASTLE DUNGEON</span>
           </a>
           <nav className="hidden items-center gap-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
             <a className="transition hover:text-ember" href="#/">Home</a>
             <a className="transition hover:text-ember" href="#/experiences">
-              Stories
+              The experience
             </a>
             <a className="transition hover:text-ember" href="#/visit">
               Visit
             </a>
             <a className="transition hover:text-ember" href="#/guide">
-              Guide
+              Visitor information
             </a>
             <a className="transition hover:text-ember" href="#/faq">
               FAQ
             </a>
             <a className="transition hover:text-ember" href="#/contact">
-              Contact
+              Get in touch
             </a>
           </nav>
           <button className="grid h-11 w-11 place-items-center border border-white/15 text-ember md:hidden" aria-expanded={menuOpen} aria-controls="home-mobile-menu" aria-label={menuOpen ? 'Close menu' : 'Open menu'} onClick={() => setMenuOpen((openState) => !openState)}>
@@ -1686,15 +1686,15 @@ function Portal() {
             className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end"
           >
             <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Choose your story</p>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Explore the dungeon</p>
               <h2 id="experiences-heading" className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
-                Six ways to enter
+                Meet the characters
                 <br />
-                <span className="text-ember">your way back out.</span>
+                <span className="text-ember">behind the history.</span>
               </h2>
             </div>
             <p className="max-w-xs text-sm leading-6 text-white/45">
-              Each adult experience is intimate, immersive, and grounded in communication, consent, and aftercare.
+              Walk through 300 years of Warwick's darker history with live actors, theatrical sets, and stories drawn from the castle and its people.
             </p>
           </motion.div>
 
@@ -1759,21 +1759,21 @@ function Portal() {
       <section id="visit" aria-labelledby="visit-heading" className="border-t border-white/10 bg-[#111213] px-6 py-20 lg:px-12 lg:py-28">
         <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">Your night begins here</p>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">Plan your visit</p>
             <h2 id="visit-heading" className="max-w-2xl font-display text-4xl leading-tight sm:text-6xl">
-              Reserve your
+              Book your
               <br />
-              <span className="text-fiery">timed entry.</span>
+              <span className="text-fiery">Dungeon entry.</span>
             </h2>
             <div className="mt-8 flex flex-wrap gap-7 text-sm text-white/55">
               <span className="flex items-center gap-2">
-                <MapPin size={16} className="text-ember" /> Warwick Castle
+                <MapPin size={16} className="text-ember" /> Warwick Castle, Warwickshire
               </span>
               <span className="flex items-center gap-2">
-                <CalendarDays size={16} className="text-ember" /> Castle admission + dungeon ticket
+                <CalendarDays size={16} className="text-ember" /> Castle admission + timed ticket
               </span>
               <span className="flex items-center gap-2">
-                <BellRing size={16} className="text-ember" /> Capacity is limited
+                <BellRing size={16} className="text-ember" /> Book ahead for your time
               </span>
             </div>
           </div>
@@ -1795,14 +1795,14 @@ function Portal() {
       <section id="guide" aria-labelledby="guide-heading" className="stone-section border-t border-white/10 px-6 py-20 lg:px-12 lg:py-28">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Plan your descent</p>
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Before you enter</p>
             <h2 id="guide-heading" className="font-display text-4xl leading-tight sm:text-6xl">
-              Know the rules
+              Make your visit
               <br />
-              <span className="text-ember">before the door opens.</span>
+              <span className="text-ember">run smoothly.</span>
             </h2>
             <p className="mt-6 max-w-md text-sm leading-7 text-white/55">
-              Entry requires a standard Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket, with limited capacity and accessibility guidance to review before arrival.
+              The Castle Dungeon is part of a Warwick Castle day out. Check your admission and timed-entry tickets, age guidance, access notes, and arrival time before you set off.
             </p>
             <button
               className="ember-button mt-8 inline-flex items-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]"
@@ -1860,7 +1860,7 @@ function Portal() {
 
       <footer className="border-t border-white/10 bg-[#090b0d] px-6 py-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-[10px] uppercase tracking-[0.18em] text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <span>The Midnight Studio · The Old Quarter</span>
+          <span>The Castle Dungeon · Warwick Castle</span>
           <a className="transition hover:text-ember" href="#/">Return to the entrance</a>
         </div>
       </footer>
