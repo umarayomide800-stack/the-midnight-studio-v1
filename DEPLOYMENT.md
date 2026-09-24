@@ -35,6 +35,8 @@ Guest browser -> Vercel or Netlify (client)
 5. Set `VITE_STRIPE_PUBLISHABLE_KEY` to the matching Stripe publishable key. Keep `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` only on Render.
 6. Set the API service's `CLIENT_ORIGIN` to the actual public frontend origin, then redeploy the frontend after changing `VITE_API_BASE_URL` because Vite embeds it at build time.
 
+For the included Render blueprint, the API service must be a Node web service with `startCommand: node server/dist/index.js`; the static site must not be used as the API service. After the first API deploy, verify both `https://the-midnight-studio-api.onrender.com/` and `/api/health` return JSON. A generic `Not Found` response means the Render service is still pointing at the wrong service or has not deployed this blueprint.
+
 ### API deployment
 
 For the Render service, leave **Root Directory** blank (the repository root). The root `package.json` defines the `client`, `server`, and `shared/types` workspaces; setting Root Directory to `server` makes commands using `--workspace server` fail with `No workspaces found`.

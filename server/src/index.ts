@@ -11,16 +11,23 @@ import { errorHandler } from './middleware/error.js';
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
-const clientOrigin = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173';
+const clientOrigins = (process.env.CLIENT_ORIGIN ?? 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 app.use(helmet());
-app.use(cors({ origin: clientOrigin }));
+app.use(cors({ origin: clientOrigins }));
 app.post('/api/v1/webhooks/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
 app.use(express.json());
 app.use('/api/v1', v1Router);
 app.use('/api/v1', paymentsRouter);
 app.use('/api/v1', bookingManagementRouter);
 app.use('/api/v1', contactRouter);
+
+app.get('/', (_request, response) => {
+  response.json({ service: 'the-midnight-studio-api', status: 'ok' });
+});
 
 app.get('/api/health', (_request, response) => {
   const payload: HealthResponse = {
