@@ -76,6 +76,32 @@ Important connection rule:
 - `DIRECT_DATABASE_URL` should be the direct PostgreSQL URL used by Prisma migrations when the provider supplies one.
 - `REDIS_URL` is optional; PostgreSQL transaction locking is the current booking concurrency control.
 
+### Render PostgreSQL setup
+
+Create a PostgreSQL database with Render, Neon, Supabase, or another managed PostgreSQL provider before deploying the API. You need these values in the Render API service environment:
+
+| Render variable | Value | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | The provider's pooled or runtime connection string | Prisma queries while the API is running |
+| `DIRECT_DATABASE_URL` | The provider's direct, non-pooled connection string | Prisma `db push` and migrations |
+
+The values normally look like this, but use the exact URLs supplied by your provider:
+
+```text
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public&sslmode=require
+DIRECT_DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public&sslmode=require
+```
+
+For a Render-managed PostgreSQL database, copy the **Internal Database URL** into `DATABASE_URL` when the API runs on Render. Use the database's direct connection URL for `DIRECT_DATABASE_URL`; if the provider does not offer separate pooled and direct URLs, use the same working PostgreSQL URL for both. Do not commit either value or send the password in chat.
+
+Before the API can serve `/api/v1`, the database must be reachable and the Render release command must complete successfully:
+
+```powershell
+npm run db:push --workspace server; npm run db:seed --workspace server
+```
+
+The seed creates the initial show, ticket categories, add-ons, and timeslots. A failed release or missing `DATABASE_URL` prevents the API service from starting correctly.
+
 ## 3. Availability and flash-sale protection
 
 The API runs an expired-hold cleanup every 60 seconds and also cleans up before each new hold. Slot holds use a PostgreSQL transaction advisory lock plus the conditional capacity update below, so concurrent requests for one slot are serialized without requiring Redis.
