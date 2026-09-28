@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Clock,
   Skull,
   Flame,
   AlertTriangle,
@@ -102,12 +101,6 @@ export const ShowCard: React.FC<ShowCardProps> = ({
             <span className="rounded-xs border border-fiery/40 bg-obsidian/85 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-fiery backdrop-blur-md">
               {show.ageRestriction}+ Only
             </span>
-          </div>
-
-          {/* Duration Badge Bottom Left of Image */}
-          <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-xs font-semibold text-white/80">
-            <Clock size={13} className="text-ember" />
-            <span>{show.durationMinutes} min tour</span>
           </div>
 
           {/* Sensory Advisory Quick Icon */}

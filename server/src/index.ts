@@ -92,5 +92,5 @@ const cleanupTimer = setInterval(() => {
 cleanupTimer.unref();
 
 app.listen(port, () => {
-  console.log(`The Midnight Studio API listening on http://localhost:${port}`);
+  console.log(`Thornfun Depth API listening on http://localhost:${port}`);
 });
