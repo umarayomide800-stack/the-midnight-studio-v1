@@ -809,8 +809,8 @@ function BookingWidget() {
                         onClick={() => update({ hasGeneralAdmission: true })}
                       >
                         <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Need general admission</div>
-                        <div className="mt-3 font-display text-2xl">Add castle entry</div>
-                        <p className="mt-2 text-sm text-white/60">This booking includes the standard Warwick Castle admission plus the separate Dungeon timed-entry ticket.</p>
+                        <div className="mt-3 font-display text-2xl">Add Thornfun Depths entry</div>
+                        <p className="mt-2 text-sm text-white/60">This booking includes standard admission plus a separate timed-entry ticket for Thornfun Depths.</p>
                       </button>
 
                       <button
@@ -820,15 +820,15 @@ function BookingWidget() {
                         onClick={() => update({ hasGeneralAdmission: false })}
                       >
                         <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Already have admission</div>
-                        <div className="mt-3 font-display text-2xl">Dungeon only</div>
-                        <p className="mt-2 text-sm text-white/60">You already hold a valid Warwick Castle ticket and only need to reserve the Dungeon slot.</p>
+                        <div className="mt-3 font-display text-2xl">Thornfun Depths only</div>
+                        <p className="mt-2 text-sm text-white/60">You already hold a valid admission ticket and only need to reserve your Thornfun Depths slot.</p>
                       </button>
                     </div>
 
                     <div className="mt-8 border border-white/10 bg-black/20 p-4 text-sm text-white/65">
-                      <p className="font-bold uppercase tracking-[0.2em] text-[10px] text-white/45">Castle Dungeon rules</p>
+                      <p className="font-bold uppercase tracking-[0.2em] text-[10px] text-white/45">Thornfun Depths rules</p>
                       <ul className="mt-3 space-y-2 leading-6">
-                        <li>• Standard admission is required in addition to the timed Dungeon ticket.</li>
+                        <li>• Standard admission is required in addition to the timed Thornfun Depths ticket.</li>
                         <li>• Timed-entry slots are limited and should be booked in advance.</li>
                         <li>• Recommended for ages 10+, and guests under 18 must be accompanied by an adult.</li>
                       </ul>
@@ -1317,18 +1317,18 @@ function StudioPage({ page, shows, open }: { page: Exclude<StudioPageName, 'home
     },
     visit: {
       eyebrow: 'Plan your visit',
-      title: 'Before you descend\ninto the dungeon.',
+      title: 'Before you descend\ninto Thornfun Depths.',
       description: 'Check your ticket requirement, reserve a timed slot, and know what to expect before you arrive at the attraction.'
     },
     guide: {
       eyebrow: 'Know before you go',
       title: 'The details you need\nbefore the doors open.',
-      description: 'Entry requires a standard Warwick Castle ticket and a separate timed-entry Dungeon ticket, with limited capacity and accessibility information to review in advance.'
+      description: 'Entry requires a Thornfun Depths admission ticket and a separate timed-entry ticket, with limited capacity and accessibility information to review in advance.'
     },
     faq: {
       eyebrow: 'The practical haunting',
       title: 'Questions for\nthe living.',
-      description: 'Straight answers about ticketing, capacity, age guidance, and accessibility for the Dungeon experience.'
+      description: 'Straight answers about ticketing, capacity, age guidance, and accessibility for the Thornfun Depths experience.'
     },
     contact: {
       eyebrow: 'Speak to the studio',
@@ -1386,17 +1386,17 @@ function ExperiencesPageContent({ shows, open }: { shows: EnrichedShow[]; open: 
 
 function VisitPageContent({ open }: { open: () => void }) {
   return <div className="mt-12 grid gap-5 md:grid-cols-3">
-    {[['Entry ticket', 'Castle admission + dungeon timed ticket', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus an additional timed-entry ticket for the Dungeon itself.'], ['Booking', 'Reserve in advance', 'Because capacity inside the underground rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'], ['Age guidance', '10+ recommended', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.']].map(([title, value, text]) => <article className="border border-white/10 bg-black/20 p-6" key={title}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">{title}</p><h2 className="mt-8 font-display text-2xl">{value}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}
+    {[['Entry ticket', 'Thornfun Depths timed ticket', 'Entry to Thornfun Depths requires an admission ticket plus an additional timed-entry ticket for the experience itself.'], ['Booking', 'Reserve in advance', 'Because capacity inside the rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'], ['Age guidance', '10+ recommended', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.']].map(([title, value, text]) => <article className="border border-white/10 bg-black/20 p-6" key={title}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">{title}</p><h2 className="mt-8 font-display text-2xl">{value}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}
     <div className="md:col-span-3"><button className="ember-button bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.16em] text-obsidian" onClick={open}>Check availability <ArrowRight className="ml-2 inline" size={16} /></button></div>
   </div>;
 }
 
 function GuidePageContent({ open }: { open: () => void }) {
-  return <div className="mt-12 grid gap-3 sm:grid-cols-2">{[['01', 'Ticket requirement', 'Entry requires a standard Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket.'], ['02', 'Book ahead', 'Timed entries sell out quickly because the underground rooms have limited capacity. Reserve your slot in advance or when you arrive.'], ['03', 'Age guidance', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'], ['04', 'Access notes', 'Dark spaces and steep spiral staircases are part of the experience, though the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors.']].map(([number, title, text]) => <article className="border border-white/10 bg-black/20 p-6" key={number}><span className="font-mono text-xs text-ember">{number}</span><h2 className="mt-8 font-display text-2xl">{title}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}<div className="sm:col-span-2"><button className="ember-button mt-5 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]" onClick={open}>Check availability</button></div></div>;
+  return <div className="mt-12 grid gap-3 sm:grid-cols-2">{[['01', 'Ticket requirement', 'Entry requires a Thornfun Depths admission ticket plus a separate timed-entry ticket.'], ['02', 'Book ahead', 'Timed entries sell out quickly because the rooms have limited capacity. Reserve your slot in advance or when you arrive.'], ['03', 'Age guidance', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'], ['04', 'Access notes', 'Dark spaces and steep staircases are part of the experience, though accessible rooms are available and free timed tickets are offered to eligible visitors.']].map(([number, title, text]) => <article className="border border-white/10 bg-black/20 p-6" key={number}><span className="font-mono text-xs text-ember">{number}</span><h2 className="mt-8 font-display text-2xl">{title}</h2><p className="mt-3 text-sm leading-6 text-white/50">{text}</p></article>)}<div className="sm:col-span-2"><button className="ember-button mt-5 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]" onClick={open}>Check availability</button></div></div>;
 }
 
 function FaqPageContent() {
-  return <div className="mt-12 max-w-3xl space-y-3">{[['What do I need to book?', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus an additional timed-entry ticket for the Dungeon itself.'], ['Do I need to book in advance?', 'Yes, timed entry slots must be reserved in advance because capacity inside the underground rooms is limited.'], ['Is it suitable for children?', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'], ['What is the attraction like?', 'It is a live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history.'], ['Is it accessible?', 'The experience includes dark spaces and steep spiral staircases, although the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors via the site.']].map(([question, answer]) => <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}><summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg">{question}<span className="text-2xl text-ember transition group-open:rotate-45" aria-hidden="true">+</span></summary><p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p></details>)}</div>;
+  return <div className="mt-12 max-w-3xl space-y-3">{[['What do I need to book?', 'Entry to Thornfun Depths requires an admission ticket plus an additional timed-entry ticket for the experience itself.'], ['Do I need to book in advance?', 'Yes, timed entry slots must be reserved in advance because capacity inside the rooms is limited.'], ['Is it suitable for children?', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'], ['What is the attraction like?', 'It is a live-actor, walk-through horror experience covering stories of ritual, trust, and immersive descent.'], ['Is it accessible?', 'The experience includes dark spaces and steep staircases, although accessible rooms are available and free timed tickets are offered to eligible visitors via the site.']].map(([question, answer]) => <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}><summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg">{question}<span className="text-2xl text-ember transition group-open:rotate-45" aria-hidden="true">+</span></summary><p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p></details>)}</div>;
 }
 
 function ContactPageContent({ open }: { open: () => void }) {
@@ -1480,17 +1480,17 @@ function CastleDungeonHero() {
         <motion.div initial="hidden" animate="visible" variants={fadeUp} className="max-w-4xl">
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <GothicBadge>AGES 10+ • LIVE ACTORS</GothicBadge>
-            <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/45">Warwick Castle</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/45">Thornfun Depths</span>
           </div>
 
           <h1 id="hero-heading" className="max-w-4xl font-display text-4xl leading-[0.9] tracking-tight text-white sm:text-6xl lg:text-[7rem]">
-            The Castle Dungeon
+            Thornfun Depths
             <br />
             <span className="text-ember">Where the past still breathes.</span>
           </h1>
 
           <p className="mt-8 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
-            A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Your visit requires a Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket.
+            A live-actor, walk-through immersive experience of ritual, trust, and descent. Your visit requires an admission ticket plus a separate timed-entry ticket for Thornfun Depths.
           </p>
 
           <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -1510,7 +1510,7 @@ function CastleDungeonHero() {
         </motion.div>
 
         <div className="mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/20 pt-5 text-[10px] uppercase tracking-[0.16em] text-white/50 sm:mt-24">
-          <HeroStat value="300+" label="Years of history" />
+          <HeroStat value="6" label="Unique rooms" />
           <HeroStat value="Timed" label="Entry slots" />
           <HeroStat value="10+" label="Recommended age" />
         </div>
@@ -1526,12 +1526,12 @@ function AttractionOverviewSection() {
       text: 'Walk through a live retelling of plague, torture, and the darker chapters of local history told in an underground chamber of fear.'
     },
     {
-      title: 'Live actor encounters',
-      text: 'The Dungeon is designed as a live-actor immersive experience, where the environment, narration, and performances combine into a relentless walk-through encounter.'
+      title: 'Immersive room encounters',
+      text: 'Thornfun Depths is designed as a live-actor immersive experience, where the environment, narration, and performances combine into a relentless walk-through encounter.'
     },
     {
       title: 'Underground atmosphere',
-      text: 'Expect dark corridors, steep spiral staircases, and an immersive atmosphere built for a tense, atmospheric descent through the vaults.'
+      text: 'Expect dark corridors, steep staircases, and an immersive atmosphere built for a tense, atmospheric descent through the depths.'
     }
   ];
 
@@ -1543,7 +1543,7 @@ function AttractionOverviewSection() {
           <h2 id="overview-heading" className="font-display text-4xl leading-tight sm:text-6xl">
             A descent into
             <br />
-            <span className="text-ember">plague, punishment, and legend.</span>
+            <span className="text-ember">ritual, trust, and darkness.</span>
           </h2>
         </motion.div>
 
@@ -1599,11 +1599,11 @@ function Portal() {
       </a>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#090b0d]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-12">
-          <a className="group flex items-center gap-3" href="#/" aria-label="The Castle Dungeon home">
+          <a className="group flex items-center gap-3" href="#/" aria-label="Thornfun Depths home">
             <span className="grid h-9 w-9 place-items-center border border-ember/70 bg-[#0c0f13] text-ember transition group-hover:bg-ember group-hover:text-obsidian">
               <Skull size={17} />
             </span>
-            <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THE CASTLE DUNGEON</span>
+            <span className="font-display text-[10px] tracking-[0.22em] sm:text-sm">THORNFUN DEPTHS</span>
           </a>
           <nav className="hidden items-center gap-8 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55 md:flex">
             <a className="transition hover:text-ember" href="#/">Home</a>
@@ -1650,7 +1650,7 @@ function Portal() {
             className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end"
           >
             <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Explore the dungeon</p>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Explore Thornfun Depths</p>
               <h2 id="experiences-heading" className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
                 Meet the characters
                 <br />
@@ -1658,7 +1658,7 @@ function Portal() {
               </h2>
             </div>
             <p className="max-w-xs text-sm leading-6 text-white/45">
-              Walk through 300 years of Warwick's darker history with live actors, theatrical sets, and stories drawn from the castle and its people.
+              Walk through the rooms of Thornfun Depths with live actors, theatrical sets, and stories built around consent, ritual, and immersive descent.
             </p>
           </motion.div>
 
@@ -1727,14 +1727,14 @@ function Portal() {
             <h2 id="visit-heading" className="max-w-2xl font-display text-4xl leading-tight sm:text-6xl">
               Book your
               <br />
-              <span className="text-fiery">Dungeon entry.</span>
+              <span className="text-fiery">Thornfun Depths entry.</span>
             </h2>
             <div className="mt-8 flex flex-wrap gap-7 text-sm text-white/55">
               <span className="flex items-center gap-2">
-                <MapPin size={16} className="text-ember" /> Warwick Castle, Warwickshire
+                <MapPin size={16} className="text-ember" /> Thornfun Depths, The Old Quarter
               </span>
               <span className="flex items-center gap-2">
-                <CalendarDays size={16} className="text-ember" /> Castle admission + timed ticket
+                <CalendarDays size={16} className="text-ember" /> Admission + timed ticket
               </span>
               <span className="flex items-center gap-2">
                 <BellRing size={16} className="text-ember" /> Book ahead for your time
@@ -1766,7 +1766,7 @@ function Portal() {
               <span className="text-ember">run smoothly.</span>
             </h2>
             <p className="mt-6 max-w-md text-sm leading-7 text-white/55">
-              The Castle Dungeon is part of a Warwick Castle day out. Check your admission and timed-entry tickets, age guidance, access notes, and arrival time before you set off.
+              Thornfun Depths is a standalone experience. Check your admission and timed-entry tickets, age guidance, access notes, and arrival time before you set off.
             </p>
             <button
               className="ember-button mt-8 inline-flex items-center gap-3 bg-crimson px-6 py-4 text-xs font-bold uppercase tracking-[0.16em]"
@@ -1777,10 +1777,10 @@ function Portal() {
           </div>
           <ol className="grid gap-3 sm:grid-cols-2">
             {[
-              ['01', 'Ticket requirement', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus a separate timed-entry Dungeon ticket.'],
-              ['02', 'Book ahead', 'Timed entries are limited by capacity inside the underground rooms, so reserve a slot in advance or when you arrive.'],
+              ['01', 'Ticket requirement', 'Entry to Thornfun Depths requires an admission ticket plus a separate timed-entry ticket for the experience itself.'],
+              ['02', 'Book ahead', 'Timed entries are limited by capacity inside the rooms, so reserve a slot in advance or when you arrive.'],
               ['03', 'Age guidance', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'],
-              ['04', 'Access notes', 'The experience includes dark spaces and steep spiral staircases, while the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors.']
+              ['04', 'Access notes', 'The experience includes dark spaces and steep staircases, while accessible rooms are available and free timed tickets are offered to eligible visitors.']
             ].map(([number, title, description]) => (
               <li className="border border-white/10 bg-black/20 p-6" key={number}>
                 <span className="font-mono text-xs text-ember">{number}</span>
@@ -1804,11 +1804,11 @@ function Portal() {
           </div>
           <div className="space-y-3">
             {[
-              ['What do I need to book?', 'Entry to The Castle Dungeon requires a standard Warwick Castle admission ticket plus an additional timed-entry ticket for the Dungeon itself.'],
-              ['Do I need to book in advance?', 'Yes. Because capacity inside the underground rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'],
+              ['What do I need to book?', 'Entry to Thornfun Depths requires an admission ticket plus an additional timed-entry ticket for the experience itself.'],
+              ['Do I need to book in advance?', 'Yes. Because capacity inside the rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'],
               ['Is it suitable for children?', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'],
-              ['What is the attraction like?', 'It is a live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history.'],
-              ['Is it accessible?', 'The experience features dark spaces and steep spiral staircases, though the final four rooms are wheelchair-accessible and free timed tickets are available for eligible visitors via the site.']
+              ['What is the attraction like?', 'It is a live-actor, walk-through immersive experience built around ritual, roles, and descent.'],
+              ['Is it accessible?', 'The experience features dark spaces and steep staircases, though accessible rooms are available and free timed tickets are offered to eligible visitors via the site.']
             ].map(([question, answer]) => (
               <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}>
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg marker:hidden">
@@ -1824,7 +1824,7 @@ function Portal() {
 
       <footer className="border-t border-white/10 bg-[#090b0d] px-6 py-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-[10px] uppercase tracking-[0.18em] text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <span>The Castle Dungeon · Warwick Castle</span>
+          <span>Thornfun Depths · The Old Quarter</span>
           <a className="transition hover:text-ember" href="#/">Return to the entrance</a>
         </div>
       </footer>
