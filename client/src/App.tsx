@@ -1,11 +1,10 @@
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
-import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import {
   AlertCircle,
   ArrowDown,
   ArrowRight,
   BellRing,
+  Building2,
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
@@ -24,10 +23,6 @@ import {
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
 import type { AddOn, BookingConfirmation, Show as ApiShow, Slot, TicketCategory } from '@the-midnight-studio/types';
-
-const stripePromise = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
-  : null;
 
 export interface EnrichedShow extends ApiShow {
   eyebrow: string;
@@ -450,8 +445,7 @@ function BookingWidget() {
   const [holding, setHolding] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [paymentClientSecret, setPaymentClientSecret] = useState<string | null>(null);
-  const [creatingPayment, setCreatingPayment] = useState(false);
+  const [bankDetails, setBankDetails] = useState<{ name: string; sortCode: string; accountNumber: string; reference: string } | null>(null);
 
   // Keep a rolling booking window; the API creates missing slots on demand.
   const dates = Array.from({ length: 30 }, (_, index) => {
@@ -505,33 +499,6 @@ function BookingWidget() {
       active = false;
     };
   }, [state.show?.slug, state.date]);
-
-  useEffect(() => {
-    if (state.step !== 5 || !state.bookingId || !state.slot || paymentClientSecret) return;
-    let active = true;
-    setCreatingPayment(true);
-    setActionError(null);
-    const addOnPayload = Object.entries(state.addons)
-      .filter(([, quantity]) => quantity > 0)
-      .map(([addOnId, quantity]) => ({ addOnId, quantity }));
-
-    api.createCheckoutIntent({
-      bookingId: state.bookingId,
-      slotId: state.slot.id,
-      customerEmail: state.guestEmail.trim(),
-      addOns: addOnPayload
-    }).then((intent) => {
-      if (active) setPaymentClientSecret(intent.clientSecret);
-    }).catch((err: Error) => {
-      if (active) setActionError(err.message || 'Payment setup failed. Please try again.');
-    }).finally(() => {
-      if (active) setCreatingPayment(false);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [state.step, state.bookingId, state.slot, state.guestEmail, state.addons, paymentClientSecret]);
 
   // Calculate ticket pricing
   const basePriceInCents = state.slot?.basePriceInCents ?? 3200;
@@ -653,7 +620,6 @@ function BookingWidget() {
         holdSeconds,
         step: 4
       });
-      setPaymentClientSecret(null);
     } catch (err: any) {
       console.warn('API holdSlot failed, continuing with client reservation:', err);
       const ref = `TMS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -664,44 +630,43 @@ function BookingWidget() {
         holdSeconds: 600,
         step: 4
       });
-      setPaymentClientSecret(null);
     } finally {
       setHolding(false);
     }
   }
 
-  async function handlePaymentComplete() {
-    if (!state.bookingId) return;
+  async function handleConfirmTransfer() {
+    if (!state.bookingId || !state.slot) return;
     setCheckingOut(true);
+    setActionError(null);
+    const addOnPayload = Object.entries(state.addons)
+      .filter(([, qty]) => qty > 0)
+      .map(([addOnId, quantity]) => ({ addOnId, quantity }));
     try {
-      for (let attempt = 0; attempt < 10; attempt += 1) {
-        const status = await api.getBookingStatus(state.bookingId, state.guestEmail.trim());
-        if (status.confirmation) {
-          update({ confirmedTicket: status.confirmation });
-          setCheckingOut(false);
-          return;
-        }
-        await new Promise((resolve) => window.setTimeout(resolve, 500));
-      }
-    } catch (err) {
-      console.warn('API booking status check unavailable, creating confirmation:', err);
-      const totalTickets = Object.values(state.tickets).reduce((sum, count) => sum + count, 0);
+      const result = await api.confirmBankTransfer({
+        bookingId: state.bookingId,
+        slotId: state.slot.id,
+        customerEmail: state.guestEmail.trim(),
+        addOns: addOnPayload
+      });
+      setBankDetails(result.bank);
+      const totalTickets = Object.values(state.tickets).reduce((sum, n) => sum + n, 0);
       update({
         confirmedTicket: {
-          bookingReference: state.bookingReference || `TMS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-          customerName: state.guestName || 'Attraction Guest',
-          customerEmail: state.guestEmail || 'guest@example.com',
-          totalPaidInCents: Math.round(ticketSubtotal * 100),
-          ticketCount: totalTickets > 0 ? totalTickets : 2,
-          ticketCategories: ticketLines.length > 0 ? ticketLines.map((t) => t.name) : ['General Admission'],
+          bookingReference: result.bookingReference,
+          customerName: state.guestName,
+          customerEmail: state.guestEmail,
+          totalPaidInCents: result.totalPaidInCents,
+          ticketCount: totalTickets,
+          ticketCategories: ticketLines.map((t) => t.name),
           slot: state.slot ? { startsAt: state.slot.startsAt, endsAt: state.slot.endsAt } : undefined
         }
       });
+    } catch (err: any) {
+      setActionError(err.message || 'Could not confirm booking. Please try again.');
+    } finally {
       setCheckingOut(false);
-      return;
     }
-    setCheckingOut(false);
-    setActionError('Payment was received, but confirmation is still processing. Please refresh shortly.');
   }
 
   if (!state.isOpen) return null;
@@ -780,35 +745,13 @@ function BookingWidget() {
                   </div>
 
                   <div className="border border-ember/30 bg-[#0f1013] p-5 text-left">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Payment summary</p>
-                    <div className="mt-4 space-y-2 text-sm">
-                      {ticketLines.map((category) => {
-                        const qty = state.tickets[category.id] ?? 0;
-                        const price = getCategoryPrice(category);
-                        return (
-                          <div className="flex justify-between text-white/70" key={category.id}>
-                            <span>
-                              {category.name} × {qty}
-                            </span>
-                            <span>£{price * qty}</span>
-                          </div>
-                        );
-                      })}
-                      {addOnLines.map((item) => {
-                        const qty = state.addons[item.id] ?? 0;
-                        return (
-                          <div className="flex justify-between text-white/70" key={item.id}>
-                            <span>
-                              {item.title} × {qty}
-                            </span>
-                            <span>£{(item.priceInCents / 100) * qty}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="mt-4 border-t border-white/10 pt-3 flex items-center justify-between text-base font-bold">
-                      <span className="text-white/60">Total</span>
-                      <span className="text-ember">£{grandTotal}</span>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Bank transfer details</p>
+                    <p className="mt-2 text-xs text-white/50">Transfer <span className="text-ember font-bold">£{grandTotal}</span> to secure your entry. Use your booking reference as the payment reference.</p>
+                    <div className="mt-4 space-y-2 text-xs">
+                      <div className="flex justify-between"><span className="text-white/40">Account name</span><span className="font-mono text-white">{bankDetails?.name ?? 'Thornfun Depth Ltd'}</span></div>
+                      <div className="flex justify-between"><span className="text-white/40">Sort code</span><span className="font-mono text-white">{bankDetails?.sortCode ?? '00-00-00'}</span></div>
+                      <div className="flex justify-between"><span className="text-white/40">Account no.</span><span className="font-mono text-white">{bankDetails?.accountNumber ?? '00000000'}</span></div>
+                      <div className="flex justify-between border-t border-white/10 pt-2"><span className="text-white/40">Reference</span><span className="font-mono text-ember">{bankDetails?.reference ?? state.confirmedTicket.bookingReference}</span></div>
                     </div>
                   </div>
                 </div>
@@ -1204,115 +1147,70 @@ function BookingWidget() {
                     <h3 className="mt-3 font-display text-3xl">Almost inside.</h3>
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                      <input
-                        className="booking-input sm:col-span-3"
-                        placeholder="Guest name"
-                        value={state.guestName}
-                        onChange={(e) => update({ guestName: e.target.value })}
-                        required
-                      />
-                      <input
-                        className="booking-input sm:col-span-2"
-                        type="email"
-                        placeholder="Email address"
-                        value={state.guestEmail}
-                        onChange={(e) => update({ guestEmail: e.target.value })}
-                        required
-                      />
-                      <input
-                        className="booking-input"
-                        placeholder="Phone (optional)"
-                        value={state.guestPhone}
-                        onChange={(e) => update({ guestPhone: e.target.value })}
-                      />
+                      <input className="booking-input sm:col-span-3" placeholder="Guest name" value={state.guestName} onChange={(e) => update({ guestName: e.target.value })} required />
+                      <input className="booking-input sm:col-span-2" type="email" placeholder="Email address" value={state.guestEmail} onChange={(e) => update({ guestEmail: e.target.value })} required />
+                      <input className="booking-input" placeholder="Phone (optional)" value={state.guestPhone} onChange={(e) => update({ guestPhone: e.target.value })} />
                     </div>
 
-                    {/* Order summary breakdown */}
-                    <div className="mt-5 grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-                      <div className="border border-white/10 bg-black/30 p-5">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Review order</p>
-                        <div className="mt-3 space-y-2 text-xs">
-                          {ticketLines.map((category) => {
-                            const qty = state.tickets[category.id] ?? 0;
-                            const price = getCategoryPrice(category);
-                            return (
-                              <div className="flex justify-between text-white/70" key={category.id}>
-                                <span>
-                                  {category.name} × {qty}
-                                </span>
-                                <span>£{price * qty}</span>
-                              </div>
-                            );
-                          })}
-                          {addOnLines.map((item) => {
-                            const qty = state.addons[item.id] ?? 0;
-                            const price = item.priceInCents / 100;
-                            return (
-                              <div className="flex justify-between text-white/70" key={item.id}>
-                                <span>
-                                  {item.title} × {qty}
-                                </span>
-                                <span>£{price * qty}</span>
-                              </div>
-                            );
-                          })}
-                          {ticketLines.length === 0 && addOnLines.length === 0 && (
-                            <div className="text-white/45">No items selected yet.</div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="border border-ember/30 bg-[#0f1013] p-5">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Session</p>
-                        <div className="mt-4 space-y-3 text-sm text-white/70">
-                          <div>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">Experience</div>
-                            <div className="mt-1 font-display text-xl text-white">{state.show.title}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-white/40">Time</div>
-                            <div className="mt-1">
-                              {state.slot && new Date(state.slot.startsAt).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {/* Order summary */}
+                    <div className="mt-5 border border-white/10 bg-black/30 p-5">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Order summary</p>
+                      <div className="mt-3 space-y-2 text-xs">
+                        {ticketLines.map((category) => {
+                          const qty = state.tickets[category.id] ?? 0;
+                          const price = getCategoryPrice(category);
+                          return (
+                            <div className="flex justify-between text-white/70" key={category.id}>
+                              <span>{category.name} × {qty}</span>
+                              <span>£{price * qty}</span>
                             </div>
-                          </div>
-                          <div className="border-t border-white/10 pt-3 flex justify-between items-center">
-                            <span className="text-white/60">Total due</span>
-                            <span className="text-lg font-bold text-ember">£{grandTotal}</span>
-                          </div>
+                          );
+                        })}
+                        {addOnLines.map((item) => {
+                          const qty = state.addons[item.id] ?? 0;
+                          const price = item.priceInCents / 100;
+                          return (
+                            <div className="flex justify-between text-white/70" key={item.id}>
+                              <span>{item.title} × {qty}</span>
+                              <span>£{price * qty}</span>
+                            </div>
+                          );
+                        })}
+                        <div className="flex justify-between border-t border-white/10 pt-2 text-white font-bold">
+                          <span>Total due</span>
+                          <span className="text-ember">£{grandTotal}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-5 border border-white/10 bg-[#121314] p-5">
+                    {/* Bank transfer info */}
+                    <div className="mt-5 border border-ember/30 bg-[#0f1013] p-5">
                       <div className="flex items-center gap-3">
-                        <ShieldCheck size={20} className="text-ember" />
+                        <Building2 size={20} className="text-ember shrink-0" />
                         <div>
-                          <p className="text-xs font-bold text-white uppercase tracking-wider">Secure reservation</p>
-                          <p className="text-[11px] text-white/50">
-                            Your payment is processed securely by Stripe. Your booking is confirmed after payment verification.
-                          </p>
+                          <p className="text-xs font-bold uppercase tracking-wider text-white">Pay by bank transfer</p>
+                          <p className="text-[11px] text-white/50 mt-0.5">Your slot is reserved immediately. Transfer the amount within 24 hours to complete your booking.</p>
                         </div>
+                      </div>
+                      <div className="mt-4 grid gap-2 text-xs text-white/70 border border-white/10 bg-black/20 p-4">
+                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Account name</span><span className="font-mono text-white">Thornfun Depth Ltd</span></div>
+                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Sort code</span><span className="font-mono text-white">00-00-00</span></div>
+                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Account number</span><span className="font-mono text-white">00000000</span></div>
+                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Reference</span><span className="font-mono text-ember">{state.bookingReference || 'Your booking ref'}</span></div>
                       </div>
                     </div>
 
-                    <div className="mt-8">
+                    {actionError && <p className="mt-4 border border-fiery/40 bg-fiery/10 p-3 text-sm text-fiery" role="alert">{actionError}</p>}
+
+                    <div className="mt-6 flex items-center gap-4">
+                      <button className="text-xs uppercase tracking-widest text-white/50 hover:text-ember" onClick={() => update({ step: 4 })}>Back</button>
                       <button
-                        className="text-xs uppercase tracking-widest text-white/50 hover:text-ember"
-                        onClick={() => update({ step: 4 })}
+                        className="ember-button flex-1 py-3.5 text-xs font-bold uppercase tracking-[0.18em] bg-ember text-obsidian hover:bg-ember/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                        onClick={handleConfirmTransfer}
+                        disabled={checkingOut || !state.guestName.trim() || !state.guestEmail.trim()}
                       >
-                        Back
+                        {checkingOut ? <><Loader2 size={15} className="animate-spin" /> Confirming…</> : <>Confirm booking <ArrowRight size={14} /></>}
                       </button>
-                      {creatingPayment && <p className="mt-5 text-sm text-white/50">Preparing secure payment...</p>}
-                      {!creatingPayment && !stripePromise && (
-                        <p className="mt-5 border border-fiery/40 bg-fiery/10 p-4 text-sm text-fiery" role="alert">
-                          Secure payments are not configured for this local app. Add `VITE_STRIPE_PUBLISHABLE_KEY` to `client/.env` and restart Vite.
-                        </p>
-                      )}
-                      {!creatingPayment && paymentClientSecret && stripePromise && (
-                        <Elements stripe={stripePromise} options={{ clientSecret: paymentClientSecret }}>
-                          <PaymentForm onComplete={handlePaymentComplete} disabled={checkingOut} />
-                        </Elements>
-                      )}
                     </div>
                   </div>
                 )}
@@ -1518,46 +1416,6 @@ function ContactPageContent({ open }: { open: () => void }) {
     } finally { setSending(false); }
   }
   return <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_0.8fr]"><form className="border border-white/10 bg-black/20 p-6 sm:p-8" onSubmit={submit}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Send an enquiry</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-xs uppercase tracking-widest text-white/50">Name<input className="booking-input mt-2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label></div><label className="mt-5 block text-xs uppercase tracking-widest text-white/50">Message<textarea className="booking-input mt-2 min-h-40 resize-y" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required minLength={10} /></label>{status && <p className="mt-4 text-sm text-ember" role="status">{status}</p>}<button className="ember-button mt-6 bg-ember px-6 py-4 text-xs font-bold uppercase tracking-widest text-obsidian disabled:opacity-50" disabled={sending} type="submit">{sending ? 'Sending...' : 'Send message'}</button></form><aside className="border border-white/10 bg-black/20 p-6 sm:p-8"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Direct contact</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block break-all text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:umarayomide700@gmail.com">umarayomide700@gmail.com</a><p className="mt-6 text-sm leading-7 text-white/50">For accessibility questions, group bookings, or anything that needs a considered answer, send us a note.</p><button className="ember-button mt-7 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></aside></div>;
-}
-
-function PaymentForm({ onComplete, disabled }: { onComplete: () => Promise<void>; disabled: boolean }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function submitPayment(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!stripe || !elements) return;
-    setSubmitting(true);
-    setError(null);
-    const result = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: window.location.href },
-      redirect: 'if_required'
-    });
-    if (result.error) {
-      setError(result.error.message ?? 'Payment could not be completed.');
-      setSubmitting(false);
-      return;
-    }
-    await onComplete();
-    setSubmitting(false);
-  }
-
-  return (
-    <form className="mt-6 border border-white/10 bg-[#0d0f12] p-5" onSubmit={submitPayment}>
-      <PaymentElement options={{ layout: 'tabs' }} />
-      {error && <p className="mt-4 text-sm text-fiery" role="alert">{error}</p>}
-      <button
-        className="ember-button mt-6 w-full bg-ember px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-obsidian disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={disabled || submitting || !stripe || !elements}
-        type="submit"
-      >
-        {submitting ? 'Confirming payment...' : 'Pay securely'}
-      </button>
-    </form>
-  );
 }
 
 function AdminPage() {

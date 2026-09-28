@@ -5,8 +5,6 @@ import type {
   AddOn,
   HoldSlotRequest,
   HoldSlotResponse,
-  CheckoutIntentRequest,
-  CheckoutIntentResponse,
   BookingStatusResponse,
   ApiResponse
 } from '@the-midnight-studio/types';
@@ -72,8 +70,8 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload)
     }),
-  createCheckoutIntent: (payload: CheckoutIntentRequest) =>
-    request<CheckoutIntentResponse>('/checkout/create-intent', {
+  confirmBankTransfer: (payload: { bookingId: string; slotId: string; customerEmail: string; addOns: { addOnId: string; quantity: number }[] }) =>
+    request<{ bookingReference: string; bookingId: string; totalPaidInCents: number; bank: { name: string; sortCode: string; accountNumber: string; reference: string } }>('/checkout/confirm-transfer', {
       method: 'POST',
       body: JSON.stringify(payload)
     }),
