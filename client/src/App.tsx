@@ -1640,83 +1640,179 @@ function Portal() {
 
       <AttractionOverviewSection />
 
-      <section id="experiences" aria-labelledby="experiences-heading" className="stone-section relative px-6 py-24 lg:px-12 lg:py-32">
-        <div className="mx-auto max-w-7xl">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.25 }}
-            variants={fadeUp}
-            className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end"
-          >
+      <section id="experiences" aria-labelledby="experiences-heading" className="relative overflow-hidden bg-[#0a0806]">
+        {/* Section header */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          variants={fadeUp}
+          className="mx-auto max-w-7xl px-6 pt-24 pb-16 lg:px-12 lg:pt-32"
+        >
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div>
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Explore Thornfun Depths</p>
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-fiery">Live Acts · Thornfun Depths</p>
               <h2 id="experiences-heading" className="max-w-xl font-display text-4xl leading-none sm:text-6xl">
-                Meet the characters
+                The cast
                 <br />
-                <span className="text-ember">behind the history.</span>
+                <span className="text-ember">performing tonight.</span>
               </h2>
             </div>
             <p className="max-w-xs text-sm leading-6 text-white/45">
-              Walk through the rooms of Thornfun Depths with live actors, theatrical sets, and stories built around consent, ritual, and immersive descent.
+              Each chamber is inhabited by a live performer. Choose your encounter — every act is unique, immersive, and written around your presence.
             </p>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          <div className="grid gap-5 lg:grid-cols-3">
-            {shows.map((show, index) => (
+        {/* Live acts rows */}
+        <div>
+          {shows.map((show, index) => {
+            const isEven = index % 2 === 0;
+            const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+            const actLabel = `Act ${romanNumerals[index] ?? index + 1}`;
+            return (
               <motion.article
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                variants={{
-                  ...fadeUp,
-                  visible: { ...fadeUp.visible, transition: { delay: index * 0.1, duration: 0.7 } }
-                }}
-                className="show-card dungeon-card group"
                 key={show.slug}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                className="group relative border-t border-white/[0.07]"
               >
-                <button
-                  className="relative block aspect-[0.78] w-full overflow-hidden text-left"
-                  onClick={() => setSelectedShow(show)}
-                >
-                  <img
-                    className="absolute inset-0 h-full w-full object-cover grayscale-[25%] transition duration-700 group-hover:scale-105 group-hover:grayscale-0"
-                    src={show.image}
-                    alt={`${show.title} atmosphere`}
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${show.accent} opacity-75 mix-blend-multiply`} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-transparent" />
-                  <div className="absolute inset-x-5 top-5 flex items-start justify-between">
-                    <span className="border border-white/25 bg-obsidian/40 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
-                      {show.eyebrow}
+                <div className={`grid grid-cols-1 md:grid-cols-2 md:min-h-[78vh]`}>
+
+                  {/* ── Image panel ── */}
+                  <div className={`relative overflow-hidden ${isEven ? 'md:order-2' : 'md:order-1'} order-1`}>
+                    {/* Aspect-ratio spacer — portrait on mobile, hidden on desktop where the grid row drives height */}
+                    <div className="aspect-[4/5] w-full md:hidden" />
+                    {/* Image fills the panel at all sizes */}
+                    <img
+                      src={show.image}
+                      alt={show.title}
+                      className="absolute inset-0 h-full w-full object-cover object-center scale-[1.04] transition-transform duration-[1400ms] ease-out group-hover:scale-100"
+                      style={{ filter: 'grayscale(80%) contrast(1.12) brightness(0.72)' }}
+                    />
+                    {/* Colour-tint wash */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${show.accent} opacity-25 mix-blend-color`} />
+                    {/* Vignette — stronger on the text-side edge */}
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: isEven
+                          ? 'linear-gradient(to left, rgba(10,8,6,0.92) 0%, rgba(10,8,6,0.3) 35%, transparent 60%)'
+                          : 'linear-gradient(to right, rgba(10,8,6,0.92) 0%, rgba(10,8,6,0.3) 35%, transparent 60%)',
+                      }}
+                    />
+                    {/* Bottom fade */}
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0a0806] to-transparent" />
+
+                    {/* Act number — watermark */}
+                    <span
+                      className="absolute font-display font-black leading-none select-none pointer-events-none text-white/[0.04]"
+                      style={{ fontSize: 'clamp(5rem, 14vw, 18rem)', bottom: '-0.1em', right: isEven ? '0.05em' : 'auto', left: isEven ? 'auto' : '0.05em' }}
+                      aria-hidden="true"
+                    >
+                      {romanNumerals[index]}
                     </span>
-                    <span className="grid h-9 w-9 place-items-center border border-white/25 bg-obsidian/40 text-ember">
-                      <Eye size={16} />
-                    </span>
-                  </div>
-                  <div className="absolute inset-x-5 bottom-5">
-                    <h3 className="font-display text-2xl leading-tight">{show.title}</h3>
-                    <p className="mt-3 max-w-xs text-sm leading-5 text-white/65">{show.shortDescription}</p>
-                    <div className="mt-5 flex items-center justify-between border-t border-white/20 pt-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/65">
-                      <span className="flex items-center gap-2">
-                        <Clock3 size={14} className="text-ember" /> {show.durationMinutes} min
+
+                    {/* Top-corner label */}
+                    <div className={`absolute top-5 ${isEven ? 'right-5' : 'left-5'} flex flex-col items-${isEven ? 'end' : 'start'} gap-1`}>
+                      <span className="border border-white/20 bg-black/50 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/60 backdrop-blur-sm">
+                        {actLabel}
                       </span>
-                      <span>{show.ageRestriction}+ only</span>
                     </div>
                   </div>
-                </button>
-                <div className="flex items-center justify-between border-x border-b border-white/10 bg-slate/60 px-5 py-4">
-                  <ScareLevel level={show.scareLevel} />
-                  <button
-                    className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45 transition hover:text-ember"
-                    onClick={() => setAdvisoryShow(show)}
+
+                  {/* ── Text panel ── */}
+                  <div
+                    className={`relative flex flex-col justify-center px-8 py-16 md:px-12 lg:px-20 order-2 ${isEven ? 'md:order-1' : 'md:order-2'}`}
                   >
-                    Sensory notes
-                  </button>
+                    {/* Subtle vertical rule */}
+                    <div
+                      className={`absolute top-0 ${isEven ? 'right-0' : 'left-0'} hidden md:block h-full w-px bg-white/[0.06]`}
+                    />
+
+                    {/* Eyebrow */}
+                    <motion.p
+                      initial={{ opacity: 0, x: isEven ? -16 : 16 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.15 }}
+                      className="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-ember"
+                    >
+                      {show.eyebrow}
+                    </motion.p>
+
+                    {/* Act label */}
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                      className="mb-2 font-mono text-[11px] text-white/25 uppercase tracking-widest"
+                    >
+                      {actLabel}
+                    </motion.p>
+
+                    {/* Title */}
+                    <motion.h3
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.75, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      className="font-display text-[2.6rem] leading-[0.92] text-white sm:text-5xl lg:text-[4rem] xl:text-[4.5rem]"
+                    >
+                      {show.title}
+                    </motion.h3>
+
+                    {/* Thin rule */}
+                    <div className="my-7 h-px w-12 bg-ember/60" />
+
+                    {/* Descriptions */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.65, delay: 0.3 }}
+                      className="max-w-sm space-y-4"
+                    >
+                      <p className="text-[0.9rem] leading-7 text-white/75">{show.shortDescription}</p>
+                      {show.fullDescription && (
+                        <p className="text-[0.84rem] leading-7 text-white/45">{show.fullDescription}</p>
+                      )}
+                    </motion.div>
+
+                    {/* Meta row */}
+                    <div className="mt-8 flex flex-wrap gap-5 text-[10px] font-bold uppercase tracking-widest text-white/30">
+                      <span className="flex items-center gap-1.5"><Clock3 size={12} className="text-ember/60" />{show.durationMinutes} min</span>
+                      <span className="flex items-center gap-1.5"><Eye size={12} className="text-ember/60" />{show.ageRestriction}+ only</span>
+                      <ScareLevel level={show.scareLevel} />
+                    </div>
+
+                    {/* CTA */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: 0.45 }}
+                      className="mt-10 flex items-center gap-6"
+                    >
+                      <button
+                        className="ember-button group/btn relative overflow-hidden bg-crimson px-7 py-4 text-[11px] font-bold uppercase tracking-[0.2em]"
+                        onClick={() => open()}
+                      >
+                        <span className="relative z-10 flex items-center gap-2.5">
+                          Book this act <ArrowRight size={14} className="transition-transform duration-300 group-hover/btn:translate-x-1" />
+                        </span>
+                      </button>
+                    </motion.div>
+                  </div>
                 </div>
               </motion.article>
-            ))}
-          </div>
+            );
+          })}
+          {/* Final rule */}
+          <div className="h-px w-full bg-white/[0.07]" />
         </div>
       </section>
 
