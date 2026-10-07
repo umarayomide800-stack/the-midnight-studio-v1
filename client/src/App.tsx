@@ -1,6 +1,5 @@
 import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import {
-  AlertCircle,
   ArrowDown,
   ArrowRight,
   BellRing,
@@ -8,11 +7,10 @@ import {
   CheckCircle2,
   ChevronLeft,
   Clock3,
+  Download,
   Eye,
-  Loader2,
   MapPin,
   Menu,
-  Download,
   RotateCcw,
   ShieldCheck,
   Skull,
@@ -627,6 +625,8 @@ function BookingModal() {
       </motion.div>
     </AnimatePresence>
   );
+}
+
 type StudioPageName = 'home' | 'experiences' | 'visit' | 'guide' | 'faq' | 'contact' | 'manage-booking' | 'admin';
 
 function getStudioPage(): StudioPageName {
@@ -830,6 +830,8 @@ function HeroStat({ value, label }: { value: string; label: string }) {
 }
 
 function CastleDungeonHero() {
+  const { open } = useBooking();
+
   return (
     <section id="top" aria-labelledby="hero-heading" className="relative flex min-h-[760px] items-end overflow-hidden pb-20 pt-32 sm:min-h-screen lg:pb-28">
       <div className="hero-image absolute inset-0" />
@@ -994,7 +996,7 @@ function Portal() {
           </button>
         </div>
       </header>
-          {menuOpen && <nav id="home-mobile-menu" aria-label="Mobile navigation" className="fixed inset-x-0 top-20 z-30 border-b border-white/10 bg-[#090b0d] px-5 py-4 md:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/" onClick={() => setMenuOpen(false)}>Home</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={() => setMenuOpen(false)}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={() => setMenuOpen(false)}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={() => setMenuOpen(false)}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={() => setMenuOpen(false)}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={() => setMenuOpen(false)}>Contact</a></div></nav>}
+      {menuOpen && <nav id="home-mobile-menu" aria-label="Mobile navigation" className="fixed inset-x-0 top-20 z-30 border-b border-white/10 bg-[#090b0d] px-5 py-4 md:hidden"><div className="mx-auto grid max-w-7xl gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-white/65"><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/" onClick={() => setMenuOpen(false)}>Home</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/experiences" onClick={() => setMenuOpen(false)}>Stories</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/visit" onClick={() => setMenuOpen(false)}>Visit</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/guide" onClick={() => setMenuOpen(false)}>Guide</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/faq" onClick={() => setMenuOpen(false)}>FAQ</a><a className="p-3 hover:bg-white/5 hover:text-ember" href="#/contact" onClick={() => setMenuOpen(false)}>Contact</a></div></nav>}
 
       <CastleDungeonHero />
 
@@ -1043,18 +1045,14 @@ function Portal() {
 
                   {/* ── Image panel ── */}
                   <div className={`relative overflow-hidden ${isEven ? 'md:order-2' : 'md:order-1'} order-1`}>
-                    {/* Aspect-ratio spacer — portrait on mobile, hidden on desktop where the grid row drives height */}
                     <div className="aspect-[4/5] w-full md:hidden" />
-                    {/* Image fills the panel at all sizes */}
                     <img
                       src={show.image}
                       alt={show.title}
                       className="absolute inset-0 h-full w-full object-cover object-center scale-[1.04] transition-transform duration-[1400ms] ease-out group-hover:scale-100"
                       style={{ filter: 'grayscale(80%) contrast(1.12) brightness(0.72)' }}
                     />
-                    {/* Colour-tint wash */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${show.accent} opacity-25 mix-blend-color`} />
-                    {/* Vignette — stronger on the text-side edge */}
                     <div
                       className="absolute inset-0"
                       style={{
@@ -1063,10 +1061,8 @@ function Portal() {
                           : 'linear-gradient(to right, rgba(10,8,6,0.92) 0%, rgba(10,8,6,0.3) 35%, transparent 60%)',
                       }}
                     />
-                    {/* Bottom fade */}
                     <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0a0806] to-transparent" />
 
-                    {/* Act number — watermark */}
                     <span
                       className="absolute font-display font-black leading-none select-none pointer-events-none text-white/[0.04]"
                       style={{ fontSize: 'clamp(5rem, 14vw, 18rem)', bottom: '-0.1em', right: isEven ? '0.05em' : 'auto', left: isEven ? 'auto' : '0.05em' }}
@@ -1075,7 +1071,6 @@ function Portal() {
                       {romanNumerals[index]}
                     </span>
 
-                    {/* Top-corner label */}
                     <div className={`absolute top-5 ${isEven ? 'right-5' : 'left-5'} flex flex-col items-${isEven ? 'end' : 'start'} gap-1`}>
                       <span className="border border-white/20 bg-black/50 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.25em] text-white/60 backdrop-blur-sm">
                         {actLabel}
@@ -1087,12 +1082,10 @@ function Portal() {
                   <div
                     className={`relative flex flex-col justify-center px-8 py-16 md:px-12 lg:px-20 order-2 ${isEven ? 'md:order-1' : 'md:order-2'}`}
                   >
-                    {/* Subtle vertical rule */}
                     <div
                       className={`absolute top-0 ${isEven ? 'right-0' : 'left-0'} hidden md:block h-full w-px bg-white/[0.06]`}
                     />
 
-                    {/* Eyebrow */}
                     <motion.p
                       initial={{ opacity: 0, x: isEven ? -16 : 16 }}
                       whileInView={{ opacity: 1, x: 0 }}
@@ -1103,7 +1096,6 @@ function Portal() {
                       {show.eyebrow}
                     </motion.p>
 
-                    {/* Act label */}
                     <motion.p
                       initial={{ opacity: 0 }}
                       whileInView={{ opacity: 1 }}
@@ -1114,7 +1106,6 @@ function Portal() {
                       {actLabel}
                     </motion.p>
 
-                    {/* Title */}
                     <motion.h3
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1125,10 +1116,8 @@ function Portal() {
                       {show.title}
                     </motion.h3>
 
-                    {/* Thin rule */}
                     <div className="my-7 h-px w-12 bg-ember/60" />
 
-                    {/* Descriptions */}
                     <motion.div
                       initial={{ opacity: 0, y: 12 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1142,14 +1131,12 @@ function Portal() {
                       )}
                     </motion.div>
 
-                    {/* Meta row */}
                     <div className="mt-8 flex flex-wrap gap-5 text-[10px] font-bold uppercase tracking-widest text-white/30">
                       <span className="flex items-center gap-1.5"><Clock3 size={12} className="text-ember/60" />{show.durationMinutes} min</span>
                       <span className="flex items-center gap-1.5"><Eye size={12} className="text-ember/60" />{show.ageRestriction}+ only</span>
                       <ScareLevel level={show.scareLevel} />
                     </div>
 
-                    {/* CTA */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       whileInView={{ opacity: 1 }}
@@ -1171,7 +1158,6 @@ function Portal() {
               </motion.article>
             );
           })}
-          {/* Final rule */}
           <div className="h-px w-full bg-white/[0.07]" />
         </div>
       </section>
