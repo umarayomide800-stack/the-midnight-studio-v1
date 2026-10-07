@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
-import type { AddOn, BookingConfirmation, Show as ApiShow, Slot, TicketCategory } from '@the-midnight-studio/types';
+import type { Show as ApiShow } from '@the-midnight-studio/types';
 
 export interface EnrichedShow extends ApiShow {
   eyebrow: string;
@@ -195,7 +195,439 @@ function ScareLevel({ level }: { level: number }) {
   );
 }
 
-type BookingStep = 1 | 2 | 3 | 4 | 5;
+// ─── Email Booking System ──────────────────────────────────────────────────
+
+type BookingModalState = {
+  isOpen: boolean;
+  screen: 'form' | 'sent';
+  selectedShow: EnrichedShow | null;
+  name: string;
+  email: string;
+  phone: string;
+  preferredDate: string;
+  guests: string;
+  message: string;
+};
+
+type BookingContextType = {
+  state: BookingModalState;
+  shows: EnrichedShow[];
+  open: (show?: EnrichedShow) => void;
+  close: () => void;
+};
+
+const bookingContext = createContext<BookingContextType | null>(null);
+
+function useBooking() {
+  const ctx = useContext(bookingContext);
+  if (!ctx) throw new Error('useBooking must be used inside BookingProvider');
+  return ctx;
+}
+
+function getInitialDate(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function BookingProvider({ children }: { children: ReactNode }) {
+  const [shows, setShows] = useState<EnrichedShow[]>(defaultFallbackShows);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const fetched = await api.getShows();
+        if (fetched.length > 0) setShows(fetched.map(enrichShow));
+      } catch {
+        /* use fallback */
+      }
+    })();
+  }, []);
+
+  const blank = (): BookingModalState => ({
+    isOpen: false,
+    screen: 'form',
+    selectedShow: null,
+    name: '',
+    email: '',
+    phone: '',
+    preferredDate: getInitialDate(),
+    guests: '2',
+    message: '',
+  });
+
+  const [state, setState] = useState<BookingModalState>(blank);
+
+  const open = (show?: EnrichedShow) =>
+    setState({ ...blank(), isOpen: true, screen: 'form', selectedShow: show ?? null });
+
+  const close = () => setState(s => ({ ...s, isOpen: false }));
+
+  return (
+    <bookingContext.Provider value={{ state, shows, open, close }}>
+      {children}
+      <BookingModal />
+    </bookingContext.Provider>
+  );
+}
+
+// ─── The booking modal ─────────────────────────────────────────────────────
+
+function BookingModal() {
+  const { state, shows, close } = useBooking();
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    preferredDate: getInitialDate(),
+    guests: '2',
+    experience: '',
+    message: '',
+  });
+  const [screen, setScreen] = useState<'form' | 'sent'>('form');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Reset when modal opens
+  useEffect(() => {
+    if (state.isOpen) {
+      setScreen('form');
+      setErrors({});
+      setForm(f => ({
+        ...f,
+        name: '',
+        email: '',
+        phone: '',
+        preferredDate: getInitialDate(),
+        guests: '2',
+        experience: state.selectedShow?.title ?? '',
+        message: '',
+      }));
+    }
+  }, [state.isOpen, state.selectedShow]);
+
+  if (!state.isOpen) return null;
+
+  const BOOKING_EMAIL = 'thornfundepthsbooking@gmail.com';
+
+  function validate() {
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = 'Your name is required.';
+    if (!form.email.trim()) e.email = 'Email address is required.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email address.';
+    if (!form.preferredDate) e.preferredDate = 'Please choose a preferred date.';
+    if (!form.guests || Number(form.guests) < 1) e.guests = 'At least 1 guest required.';
+    return e;
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
+    setScreen('sent');
+  }
+
+  const mailtoBody = [
+    `Hi,`,
+    ``,
+    `I'd like to make a booking enquiry for Thornfun Depths.`,
+    ``,
+    `Name: ${form.name}`,
+    `Email: ${form.email}`,
+    form.phone ? `Phone: ${form.phone}` : null,
+    `Preferred Date: ${form.preferredDate}`,
+    `Number of Guests: ${form.guests}`,
+    form.experience ? `Experience: ${form.experience}` : null,
+    form.message ? `\nAdditional notes:\n${form.message}` : null,
+    ``,
+    `Please let me know about availability and payment details.`,
+    ``,
+    `Thank you.`,
+  ].filter(l => l !== null).join('\n');
+
+  const mailtoHref = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(`Booking Enquiry – ${form.experience || 'Thornfun Depths'}`)}&body=${encodeURIComponent(mailtoBody)}`;
+
+  const experienceOptions = shows.map(s => s.title);
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-[70] overflow-y-auto bg-obsidian/95 px-4 py-8 backdrop-blur-md sm:px-8 sm:py-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        aria-modal="true"
+        role="dialog"
+        aria-label="Book your experience"
+      >
+        <div className="booking-surface mx-auto max-w-2xl border border-white/10 bg-[#151617] shadow-2xl">
+
+          {/* Modal header */}
+          <div className="flex items-center justify-between border-b border-white/10 px-6 py-5 sm:px-8">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-ember">Thornfun Depths / Private booking</p>
+              <h2 className="mt-2 font-display text-xl sm:text-2xl">
+                {screen === 'sent' ? 'Enquiry sent' : 'Book your experience'}
+              </h2>
+            </div>
+            <button
+              className="grid h-10 w-10 place-items-center border border-white/15 text-white/60 hover:border-ember hover:text-ember transition"
+              onClick={close}
+              aria-label="Close booking"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* ── FORM SCREEN ─────────────────────────────────────────────── */}
+          {screen === 'form' && (
+            <form onSubmit={handleSubmit} noValidate className="p-6 sm:p-8 space-y-6">
+              <p className="text-sm text-white/55 leading-6">
+                Fill in your details below and we'll get back to you at{' '}
+                <strong className="text-ember">thornfundepthsbooking@gmail.com</strong>{' '}
+                within 24 hours to confirm availability and arrange payment.
+              </p>
+
+              {/* Location notice board */}
+              <div className="flex items-start gap-3 border border-amber-500/35 bg-amber-500/5 p-4">
+                <MapPin size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-400">📍 Location Notice</p>
+                  <p className="mt-1.5 text-xs leading-5 text-white/65">
+                    For privacy and security, the exact venue address is kept confidential.{' '}
+                    <strong className="text-white/90">The full location is only revealed after payment is confirmed.</strong>
+                  </p>
+                </div>
+              </div>
+
+              {/* Name + Email */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="bk-name" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Full name *</label>
+                  <input
+                    id="bk-name"
+                    className={`booking-input w-full ${errors.name ? 'border-fiery/60' : ''}`}
+                    placeholder="Your full name"
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  />
+                  {errors.name && <p className="mt-1 text-[10px] text-fiery">{errors.name}</p>}
+                </div>
+                <div>
+                  <label htmlFor="bk-email" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Email address *</label>
+                  <input
+                    id="bk-email"
+                    type="email"
+                    className={`booking-input w-full ${errors.email ? 'border-fiery/60' : ''}`}
+                    placeholder="you@example.com"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  />
+                  {errors.email && <p className="mt-1 text-[10px] text-fiery">{errors.email}</p>}
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="bk-phone" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Phone number (optional)</label>
+                <input
+                  id="bk-phone"
+                  type="tel"
+                  className="booking-input w-full"
+                  placeholder="+44 7xxx xxxxxx"
+                  value={form.phone}
+                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                />
+              </div>
+
+              {/* Date + Guests */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="bk-date" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Preferred date *</label>
+                  <input
+                    id="bk-date"
+                    type="date"
+                    className={`booking-input w-full [color-scheme:dark] ${errors.preferredDate ? 'border-fiery/60' : ''}`}
+                    value={form.preferredDate}
+                    min={getInitialDate()}
+                    onChange={e => setForm(f => ({ ...f, preferredDate: e.target.value }))}
+                  />
+                  {errors.preferredDate && <p className="mt-1 text-[10px] text-fiery">{errors.preferredDate}</p>}
+                </div>
+                <div>
+                  <label htmlFor="bk-guests" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Number of guests *</label>
+                  <input
+                    id="bk-guests"
+                    type="number"
+                    min="1"
+                    max="30"
+                    className={`booking-input w-full ${errors.guests ? 'border-fiery/60' : ''}`}
+                    value={form.guests}
+                    onChange={e => setForm(f => ({ ...f, guests: e.target.value }))}
+                  />
+                  {errors.guests && <p className="mt-1 text-[10px] text-fiery">{errors.guests}</p>}
+                </div>
+              </div>
+
+              {/* Experience picker */}
+              <div>
+                <label htmlFor="bk-experience" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Experience (optional)</label>
+                <select
+                  id="bk-experience"
+                  className="booking-input w-full bg-[#151617] text-white/80"
+                  value={form.experience}
+                  onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
+                >
+                  <option value="">— No preference / Not sure yet —</option>
+                  {experienceOptions.map(title => (
+                    <option key={title} value={title}>{title}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label htmlFor="bk-message" className="block text-[10px] font-bold uppercase tracking-[0.22em] text-white/50 mb-2">Additional notes (optional)</label>
+                <textarea
+                  id="bk-message"
+                  className="booking-input w-full min-h-[100px] resize-y"
+                  placeholder="Accessibility requirements, group details, questions..."
+                  value={form.message}
+                  onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-4 pt-2">
+                <button
+                  type="button"
+                  className="text-xs uppercase tracking-widest text-white/40 hover:text-ember transition"
+                  onClick={close}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="ember-button flex-1 inline-flex items-center justify-center gap-2 bg-ember py-4 text-xs font-bold uppercase tracking-[0.18em] text-obsidian hover:bg-ember/90"
+                >
+                  Send booking enquiry <ArrowRight size={15} />
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── SENT / CONFIRMATION SCREEN ──────────────────────────────── */}
+          {screen === 'sent' && (
+            <div className="p-6 sm:p-8 space-y-5">
+
+              {/* Success header */}
+              <div className="text-center py-4">
+                <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-[#64d48b]/40 bg-[#64d48b]/10 text-[#64d48b]">
+                  <CheckCircle2 size={30} />
+                </div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ember">Enquiry ready to send</p>
+                <h3 className="mt-2 font-display text-3xl sm:text-4xl">Almost there.</h3>
+                <p className="mt-2 text-sm text-white/55 max-w-sm mx-auto leading-6">
+                  Click the button below to open your email app with your booking details pre-filled and ready to send.
+                </p>
+              </div>
+
+              {/* Booking summary card */}
+              <div className="border border-white/10 bg-white/[0.02] divide-y divide-white/10 text-sm">
+                {[
+                  ['Name', form.name],
+                  ['Email', form.email],
+                  ...(form.phone ? [['Phone', form.phone] as [string,string]] : []),
+                  ['Preferred date', new Date(`${form.preferredDate}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })],
+                  ['Guests', `${form.guests} guest${Number(form.guests) > 1 ? 's' : ''}`],
+                  ...(form.experience ? [['Experience', form.experience] as [string,string]] : []),
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-4 px-5 py-3">
+                    <span className="text-white/40 text-xs uppercase tracking-wider shrink-0">{label}</span>
+                    <span className="text-white text-right">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Primary CTA — open email */}
+              <div className="border border-[#64d48b]/35 bg-[#64d48b]/5 p-5">
+                <div className="flex items-start gap-4">
+                  <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#64d48b]/40 bg-[#64d48b]/10 text-[#64d48b]">
+                    <BellRing size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#64d48b]">Send your booking email</p>
+                    <p className="mt-2 text-sm leading-6 text-white/65">
+                      Your booking details are ready. Click below to open your email app — everything is pre-filled. Just hit send.
+                    </p>
+                    <p className="mt-1 text-[11px] text-white/35 break-all">To: {BOOKING_EMAIL}</p>
+                    <a
+                      href={mailtoHref}
+                      className="mt-4 inline-flex items-center gap-2 border border-[#64d48b]/60 bg-[#64d48b]/15 px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-[#64d48b] transition hover:bg-[#64d48b]/25"
+                    >
+                      <ShieldCheck size={14} />
+                      Open email app &amp; send
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Or copy email manually */}
+              <div className="border border-white/10 bg-black/20 px-5 py-4 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-white/35">Or email us directly at</p>
+                  <p className="mt-1 font-mono text-sm text-ember break-all">{BOOKING_EMAIL}</p>
+                </div>
+              </div>
+
+              {/* Location notice board */}
+              <div className="flex items-start gap-4 border border-amber-500/40 bg-amber-500/5 p-5">
+                <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-amber-500/35 bg-amber-500/10 text-amber-400">
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-amber-400">📍 Location Notice</p>
+                  <p className="mt-2 text-sm leading-6 text-white/65">
+                    The exact venue address is kept private for security.
+                    <strong className="block mt-1 text-white/90">The full location will only be shared with you after your payment has been confirmed.</strong>
+                    You'll receive complete directions by email once your booking is processed.
+                  </p>
+                </div>
+              </div>
+
+              {/* What happens next */}
+              <div className="border border-white/10 bg-black/20 p-5 space-y-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">What happens next</p>
+                <ol className="space-y-2 text-sm text-white/55 leading-6">
+                  <li className="flex items-start gap-3"><span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-ember/40 text-[9px] font-bold text-ember">1</span>Send the pre-filled email using the button above.</li>
+                  <li className="flex items-start gap-3"><span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-ember/40 text-[9px] font-bold text-ember">2</span>Our team will reply within 24 hours to confirm your date and availability.</li>
+                  <li className="flex items-start gap-3"><span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border border-ember/40 text-[9px] font-bold text-ember">3</span>Once payment is confirmed, the secret venue address will be revealed to you.</li>
+                </ol>
+              </div>
+
+              {/* Footer actions */}
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  className="text-xs uppercase tracking-widest text-white/35 hover:text-ember transition"
+                  onClick={() => setScreen('form')}
+                >
+                  ← Edit details
+                </button>
+                <button
+                  className="inline-flex items-center gap-2 border border-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.14em] text-white/40 hover:text-white transition"
+                  onClick={close}
+                >
+                  <RotateCcw size={13} />
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 type BookingState = {
   isOpen: boolean;
