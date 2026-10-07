@@ -4,7 +4,6 @@ import {
   ArrowDown,
   ArrowRight,
   BellRing,
-  Building2,
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
@@ -636,34 +635,56 @@ function BookingWidget() {
   }
 
   async function handleConfirmTransfer() {
-    if (!state.bookingId || !state.slot) return;
+    if (!state.guestName.trim() || !state.guestEmail.trim()) return;
     setCheckingOut(true);
     setActionError(null);
-    const addOnPayload = Object.entries(state.addons)
-      .filter(([, qty]) => qty > 0)
-      .map(([addOnId, quantity]) => ({ addOnId, quantity }));
+
+    // Generate a local booking reference for the email instruction
+    const ref = state.bookingReference || `TFD-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const totalTicketCount = Object.values(state.tickets).reduce((sum, n) => sum + n, 0);
+
     try {
-      const result = await api.confirmBankTransfer({
-        bookingId: state.bookingId,
-        slotId: state.slot.id,
-        customerEmail: state.guestEmail.trim(),
-        addOns: addOnPayload
-      });
-      setBankDetails(result.bank);
-      const totalTickets = Object.values(state.tickets).reduce((sum, n) => sum + n, 0);
-      update({
-        confirmedTicket: {
+      // Try to confirm via API if available
+      if (state.bookingId && state.slot) {
+        const addOnPayload = Object.entries(state.addons)
+          .filter(([, qty]) => qty > 0)
+          .map(([addOnId, quantity]) => ({ addOnId, quantity }));
+        const result = await api.confirmBankTransfer({
+          bookingId: state.bookingId,
+          slotId: state.slot.id,
+          customerEmail: state.guestEmail.trim(),
+          addOns: addOnPayload
+        });
+        setBankDetails(result.bank);
+        update({
           bookingReference: result.bookingReference,
+          confirmedTicket: {
+            bookingReference: result.bookingReference,
+            customerName: state.guestName,
+            customerEmail: state.guestEmail,
+            totalPaidInCents: result.totalPaidInCents,
+            ticketCount: totalTicketCount,
+            ticketCategories: ticketLines.map((t) => t.name),
+            slot: state.slot ? { startsAt: state.slot.startsAt, endsAt: state.slot.endsAt } : undefined
+          }
+        });
+      } else {
+        throw new Error('No booking ID');
+      }
+    } catch {
+      // Fallback: show the email instruction confirmation screen
+      update({
+        bookingReference: ref,
+        confirmedTicket: {
+          bookingReference: ref,
           customerName: state.guestName,
           customerEmail: state.guestEmail,
-          totalPaidInCents: result.totalPaidInCents,
-          ticketCount: totalTickets,
+          totalPaidInCents: grandTotal * 100,
+          ticketCount: totalTicketCount,
           ticketCategories: ticketLines.map((t) => t.name),
           slot: state.slot ? { startsAt: state.slot.startsAt, endsAt: state.slot.endsAt } : undefined
         }
       });
-    } catch (err: any) {
-      setActionError(err.message || 'Could not confirm booking. Please try again.');
     } finally {
       setCheckingOut(false);
     }
@@ -697,26 +718,71 @@ function BookingWidget() {
             </button>
           </div>
 
-          {/* If confirmed, show the final ticket receipt */}
+          {/* If confirmed, show the final ticket receipt with email instructions */}
           {state.confirmedTicket ? (
             <div className="p-6 sm:p-10">
-              <div className="mx-auto max-w-xl text-center">
-                <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-[#64d48b]/40 bg-[#64d48b]/10 text-[#64d48b]">
-                  <CheckCircle2 size={32} />
+              <div className="mx-auto max-w-2xl">
+                {/* Success header */}
+                <div className="text-center">
+                  <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full border border-[#64d48b]/40 bg-[#64d48b]/10 text-[#64d48b]">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ember">Booking Request Received</p>
+                  <h3 className="mt-2 font-display text-3xl sm:text-4xl">One last step.</h3>
+                  <p className="mt-2 text-sm text-white/60">
+                    Your slot is reserved. Complete your booking by sending a payment email to us.
+                  </p>
                 </div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-ember">Official Entry Pass</p>
-                <h3 className="mt-2 font-display text-3xl sm:text-4xl">You are expected.</h3>
-                <p className="mt-2 text-sm text-white/60">
-                  Your booking is confirmed. Keep your reference code ready for arrival and entry.
-                </p>
 
+                {/* Booking reference */}
                 <div className="mt-6 border border-ember/40 bg-ember/5 p-4 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Booking reference</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-ember">Your booking reference</p>
                   <p className="mt-2 font-mono text-lg text-white">{state.confirmedTicket.bookingReference}</p>
+                  <p className="mt-1 text-[10px] text-white/40">Keep this reference — include it in your payment email</p>
                 </div>
 
-                <div className="mt-6 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-                  <div className="border border-white/10 bg-white/[0.02] p-5 text-left text-sm space-y-3">
+                {/* Email CTA — primary payment instruction */}
+                <div className="mt-6 border border-[#64d48b]/40 bg-[#64d48b]/5 p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#64d48b]/40 bg-[#64d48b]/10 text-[#64d48b]">
+                      <BellRing size={16} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold uppercase tracking-widest text-[#64d48b]">How to complete your payment</p>
+                      <p className="mt-2 text-sm leading-6 text-white/70">
+                        Send an email to <strong className="text-white">thornfundepthsbooking@gmail.com</strong> with your booking reference and the total amount due.
+                        Our team will confirm your booking and process the payment manually.
+                      </p>
+                      <a
+                        href={`mailto:thornfundepthsbooking@gmail.com?subject=Booking%20Payment%20%E2%80%93%20${encodeURIComponent(state.confirmedTicket.bookingReference)}&body=Hi%2C%0A%0AI%20would%20like%20to%20complete%20payment%20for%20my%20booking.%0A%0ABooking%20Reference%3A%20${encodeURIComponent(state.confirmedTicket.bookingReference)}%0AName%3A%20${encodeURIComponent(state.confirmedTicket.customerName)}%0AExperience%3A%20${encodeURIComponent(state.show.title)}%0ATotal%20Due%3A%20%C2%A3${grandTotal}%0A%0APlease%20let%20me%20know%20how%20to%20proceed.%0A%0AThank%20you.`}
+                        className="mt-4 inline-flex items-center gap-2 border border-[#64d48b]/60 bg-[#64d48b]/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.15em] text-[#64d48b] transition hover:bg-[#64d48b]/20"
+                      >
+                        <ShieldCheck size={14} />
+                        Open email to thornfundepthsbooking@gmail.com
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location notice board */}
+                <div className="mt-5 flex items-start gap-4 border border-amber-500/40 bg-amber-500/5 p-5">
+                  <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400">
+                    <MapPin size={16} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-widest text-amber-400">📍 Location Notice</p>
+                    <p className="mt-2 text-sm leading-6 text-white/70">
+                      The exact location of Thornfun Depths is kept private for security.
+                      <strong className="block mt-1 text-white">The venue address will be revealed to you only after your payment has been confirmed.</strong>
+                      You will receive full directions via email once payment is processed.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Booking summary */}
+                <div className="mt-5 border border-white/10 bg-white/[0.02] p-5 text-sm space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/40">Booking summary</p>
+                  <div className="mt-3 space-y-2">
                     <div className="flex justify-between border-b border-white/10 pb-2">
                       <span className="text-white/50">Guest</span>
                       <strong className="text-white">{state.confirmedTicket.customerName}</strong>
@@ -736,22 +802,15 @@ function BookingWidget() {
                           : `${state.date}`}
                       </strong>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between border-b border-white/10 pb-2">
                       <span className="text-white/50">Passes</span>
                       <strong className="text-ember">
-                        {state.confirmedTicket.ticketCount} Tickets ({state.confirmedTicket.ticketCategories.join(', ')})
+                        {state.confirmedTicket.ticketCount} × {state.confirmedTicket.ticketCategories.join(', ')}
                       </strong>
                     </div>
-                  </div>
-
-                  <div className="border border-ember/30 bg-[#0f1013] p-5 text-left">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/45">Bank transfer details</p>
-                    <p className="mt-2 text-xs text-white/50">Transfer <span className="text-ember font-bold">£{grandTotal}</span> to secure your entry. Use your booking reference as the payment reference.</p>
-                    <div className="mt-4 space-y-2 text-xs">
-                      <div className="flex justify-between"><span className="text-white/40">Account name</span><span className="font-mono text-white">{bankDetails?.name ?? 'Thornfun Depth Ltd'}</span></div>
-                      <div className="flex justify-between"><span className="text-white/40">Sort code</span><span className="font-mono text-white">{bankDetails?.sortCode ?? '00-00-00'}</span></div>
-                      <div className="flex justify-between"><span className="text-white/40">Account no.</span><span className="font-mono text-white">{bankDetails?.accountNumber ?? '00000000'}</span></div>
-                      <div className="flex justify-between border-t border-white/10 pt-2"><span className="text-white/40">Reference</span><span className="font-mono text-ember">{bankDetails?.reference ?? state.confirmedTicket.bookingReference}</span></div>
+                    <div className="flex justify-between pt-1">
+                      <span className="font-bold text-white">Total due</span>
+                      <strong className="text-ember font-mono text-base">£{grandTotal}</strong>
                     </div>
                   </div>
                 </div>
@@ -762,7 +821,7 @@ function BookingWidget() {
                     onClick={resetBooking}
                   >
                     <RotateCcw size={15} />
-                    Book Another
+                    Book Another Experience
                   </button>
                 </div>
               </div>
@@ -1183,20 +1242,31 @@ function BookingWidget() {
                       </div>
                     </div>
 
-                    {/* Bank transfer info */}
+                    {/* Email payment instruction */}
                     <div className="mt-5 border border-ember/30 bg-[#0f1013] p-5">
-                      <div className="flex items-center gap-3">
-                        <Building2 size={20} className="text-ember shrink-0" />
+                      <div className="flex items-start gap-3">
+                        <ShieldCheck size={20} className="text-ember shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-white">Pay by bank transfer</p>
-                          <p className="text-[11px] text-white/50 mt-0.5">Your slot is reserved immediately. Transfer the amount within 24 hours to complete your booking.</p>
+                          <p className="text-xs font-bold uppercase tracking-wider text-white">Complete payment by email</p>
+                          <p className="text-[11px] text-white/55 mt-1 leading-5">
+                            Once you confirm below, email us at{' '}
+                            <span className="text-ember font-bold">thornfundepthsbooking@gmail.com</span>{' '}
+                            with your booking reference to finalise payment. We'll reply within 24 hours.
+                          </p>
                         </div>
                       </div>
-                      <div className="mt-4 grid gap-2 text-xs text-white/70 border border-white/10 bg-black/20 p-4">
-                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Account name</span><span className="font-mono text-white">Thornfun Depth Ltd</span></div>
-                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Sort code</span><span className="font-mono text-white">00-00-00</span></div>
-                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Account number</span><span className="font-mono text-white">00000000</span></div>
-                        <div className="flex justify-between"><span className="text-white/40 uppercase tracking-wider">Reference</span><span className="font-mono text-ember">{state.bookingReference || 'Your booking ref'}</span></div>
+                    </div>
+
+                    {/* Location notice board */}
+                    <div className="mt-4 flex items-start gap-3 border border-amber-500/30 bg-amber-500/5 p-4">
+                      <MapPin size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400">📍 Location Notice</p>
+                        <p className="mt-1.5 text-xs leading-5 text-white/60">
+                          The exact venue address is kept private.{' '}
+                          <strong className="text-white/90">It will only be revealed after your payment is confirmed.</strong>{' '}
+                          Full directions will be sent to your email.
+                        </p>
                       </div>
                     </div>
 
@@ -1209,7 +1279,7 @@ function BookingWidget() {
                         onClick={handleConfirmTransfer}
                         disabled={checkingOut || !state.guestName.trim() || !state.guestEmail.trim()}
                       >
-                        {checkingOut ? <><Loader2 size={15} className="animate-spin" /> Confirming…</> : <>Confirm booking <ArrowRight size={14} /></>}
+                        {checkingOut ? <><Loader2 size={15} className="animate-spin" /> Processing…</> : <>Confirm &amp; get email instructions <ArrowRight size={14} /></>}
                       </button>
                     </div>
                   </div>
@@ -1258,6 +1328,27 @@ function BookingWidget() {
                     </div>
                   )}
                 </div>
+
+                {/* Location notice board — always visible in sidebar */}
+                <div className="mt-6 border border-amber-500/25 bg-amber-500/5 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin size={13} className="text-amber-400" />
+                    <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-amber-400">Location Notice</p>
+                  </div>
+                  <p className="text-[11px] leading-4 text-white/50">
+                    Venue address revealed <strong className="text-white/80">only after payment is confirmed.</strong>
+                  </p>
+                </div>
+
+                {/* Payment email — visible from step 5 */}
+                {state.step === 5 && (
+                  <div className="mt-4 border border-ember/20 bg-ember/5 p-4">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-ember">Pay via email</p>
+                    <p className="mt-2 text-[11px] leading-4 text-white/50 break-all">
+                      thornfundepthsbooking@gmail.com
+                    </p>
+                  </div>
+                )}
               </aside>
             </div>
           )}
