@@ -1234,36 +1234,6 @@ function Portal() {
         </div>
       </section>
 
-      <section id="faq" aria-labelledby="faq-heading" className="border-t border-white/10 bg-[#111213] px-6 py-20 lg:px-12 lg:py-28">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.75fr_1.25fr]">
-          <div>
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.38em] text-ember">The practical haunting</p>
-            <h2 id="faq-heading" className="font-display text-4xl leading-tight sm:text-6xl">
-              Questions for
-              <br />
-              <span className="text-fiery">the living.</span>
-            </h2>
-          </div>
-          <div className="space-y-3">
-            {[
-              ['What do I need to book?', 'Entry to Thornfun Depths requires an admission ticket plus an additional timed-entry ticket for the experience itself.'],
-              ['Do I need to book in advance?', 'Yes. Because capacity inside the rooms is limited, timed entry slots must be reserved in advance on the website or on arrival.'],
-              ['Is it suitable for children?', 'The experience is recommended for ages 10 and older, and guests under 18 must be accompanied by an adult.'],
-              ['What is the attraction like?', 'It is a live-actor, walk-through immersive experience built around ritual, roles, and descent.'],
-              ['Is it accessible?', 'The experience features dark spaces and steep staircases, though accessible rooms are available and free timed tickets are offered to eligible visitors via the site.']
-            ].map(([question, answer]) => (
-              <details className="group border border-white/10 bg-black/20 p-5 open:border-ember/50" key={question}>
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-5 font-display text-lg marker:hidden">
-                  {question}
-                  <span className="text-2xl font-light text-ember transition group-open:rotate-45" aria-hidden="true">+</span>
-                </summary>
-                <p className="max-w-2xl pr-8 pt-4 text-sm leading-7 text-white/55">{answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <footer className="border-t border-white/10 bg-[#090b0d] px-6 py-8 lg:px-12">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-[10px] uppercase tracking-[0.18em] text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <span>Thornfun Depths · The Old Quarter</span>
