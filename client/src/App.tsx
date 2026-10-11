@@ -28,134 +28,72 @@ export interface EnrichedShow extends ApiShow {
 }
 
 const showMetadata: Record<string, { eyebrow: string; accent: string; image: string }> = {
-  'the-velvet-contract': {
-    eyebrow: 'The private salon',
-    accent: 'from-[#a11a14] to-[#3c0b0b]',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85'
+  'the-plague-doctor': {
+    eyebrow: 'The beak and the cure',
+    accent: 'from-[#1a2a1a] to-[#0a0f0a]',
+    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=1600&q=85'
   },
-  'house-of-hollow-bells': {
-    eyebrow: 'The protocol room',
-    accent: 'from-[#6a5a22] to-[#201d10]',
-    image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=85'
+  'the-torturer': {
+    eyebrow: 'The dungeon below',
+    accent: 'from-[#2a0a0a] to-[#0f0505]',
+    image: 'https://images.unsplash.com/photo-1509475826633-fed577a2c71b?auto=format&fit=crop&w=1600&q=85'
   },
-  'red-veil-society': {
-    eyebrow: 'The invitation chamber',
-    accent: 'from-[#44513c] to-[#121714]',
-    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85'
+  'the-judge': {
+    eyebrow: 'The court of no mercy',
+    accent: 'from-[#1a1a2a] to-[#08080f]',
+    image: 'https://images.unsplash.com/photo-1542626991-cbc4e32524cc?auto=format&fit=crop&w=1600&q=85'
   },
-  'the-iron-garden': {
-    eyebrow: 'The discipline wing',
-    accent: 'from-[#4c4438] to-[#16130f]',
-    image: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1600&q=85'
-  },
-  'aftercare-at-midnight': {
-    eyebrow: 'The quiet room',
-    accent: 'from-[#6d3b4b] to-[#1b0e15]',
-    image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1600&q=85'
-  },
-  'the-nocturne-protocol': {
-    eyebrow: 'The overnight suite',
-    accent: 'from-[#272b3b] to-[#0b0d14]',
-    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85'
-  }
+
 };
 
 const defaultFallbackShows: EnrichedShow[] = [
   {
     id: '1',
-    title: 'The Velvet Contract',
-    slug: 'the-velvet-contract',
-    eyebrow: 'The private salon',
-    shortDescription: 'A live-actor historical horror experience exploring plague, ritual, and the cost of silence.',
-    fullDescription: 'A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Enter a private salon where every boundary is spoken, every signal matters, and the evening unfolds through guided scenes of trust, control, and dread.',
+    title: 'The Plague Doctor',
+    slug: 'the-plague-doctor',
+    eyebrow: 'The beak and the cure',
+    shortDescription: 'Feeling a little ropey? Meet the Candlewick "Plague Doctor" as they go around offering help… but who are they helping, really?',
+    fullDescription: 'Side by side with your group, a role within your group, this "Doctor" will seek out the sick within you. Will they call you out and try to heal you, or try to turn your symptoms into something worse? Warning: Strong stomach always a must.',
     scareLevel: 2,
     durationMinutes: 60,
     ageRestriction: 18,
-    sensoryAdvisories: 'Low lighting, theatrical sound, close-contact performance, verbal participation',
+    sensoryAdvisories: 'Low lighting, theatrical fog, close-contact performance, verbal participation',
     coverImageUrl: null,
     isActive: true,
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85',
-    accent: 'from-[#a11a14] to-[#3c0b0b]'
+    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=1600&q=85',
+    accent: 'from-[#1a2a1a] to-[#0a0f0a]'
   },
   {
     id: '2',
-    title: 'The House of Hollow Bells',
-    slug: 'house-of-hollow-bells',
-    eyebrow: 'The protocol room',
-    shortDescription: 'A live-actor historical horror walk-through shaped by rules, ritual, and the weight of local dark history.',
-    fullDescription: 'A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Move through a candlelit house where protocol shapes every encounter and the past feels alive with judgment, fear, and ritual.',
-    scareLevel: 2,
-    durationMinutes: 60,
+    title: 'The Torturer',
+    slug: 'the-torturer',
+    eyebrow: 'The dungeon below',
+    shortDescription: 'The Guide Dungeon\'s Torban Chamberley, or better known as the forcer of conversation, humiliation, and pain — order or pay your price.',
+    fullDescription: 'Come face to face with The Torturer, an expert in their craft, as they take pride in demonstrating unsettling pressure. But you, first-hands-side-of-the-table, ranging from Tickle to The Chair at the Choppy Chopper — we\'ll know how to let your imagination run wild.',
+    scareLevel: 3,
+    durationMinutes: 75,
     ageRestriction: 18,
-    sensoryAdvisories: 'Low lighting, theatrical fog, bells, guided movement',
+    sensoryAdvisories: 'Metallic sound, low lighting, close proximity, guided instruction',
     coverImageUrl: null,
     isActive: true,
-    image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=85',
-    accent: 'from-[#6a5a22] to-[#201d10]'
+    image: 'https://images.unsplash.com/photo-1509475826633-fed577a2c71b?auto=format&fit=crop&w=1600&q=85',
+    accent: 'from-[#2a0a0a] to-[#0f0505]'
   },
   {
     id: '3',
-    title: 'The Red Veil Society',
-    slug: 'red-veil-society',
-    eyebrow: 'The invitation chamber',
-    shortDescription: 'A live-actor historical horror story of silence, secrecy, and the shadows left by centuries of fear.',
-    fullDescription: 'A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Choose your role, learn the house signals, and step into a secret chamber where confidence, ritual, and the weight of the past collide.',
-    scareLevel: 1,
+    title: 'The Judge',
+    slug: 'the-judge',
+    eyebrow: 'The court of no mercy',
+    shortDescription: 'Bloody order for your belonging to the themed forms here. This Dark Constable, ready and willingly to point his gavel at all who present themselves.',
+    fullDescription: 'Will you be found GUILTY AS CHARGED? The answer is — yes. However, an interim will always be managed by the Judge\'s skilled and fair firm and soft path to guilt.',
+    scareLevel: 2,
     durationMinutes: 50,
     ageRestriction: 18,
-    sensoryAdvisories: 'Low lighting, theatrical fog, social interaction, optional participation',
+    sensoryAdvisories: 'Low lighting, theatrical sound, social interaction, optional participation',
     coverImageUrl: null,
     isActive: true,
-    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85',
-    accent: 'from-[#44513c] to-[#121714]'
-  },
-  {
-    id: '4',
-    title: 'The Iron Garden',
-    slug: 'the-iron-garden',
-    eyebrow: 'The discipline wing',
-    shortDescription: 'A live-actor historical horror descent through ritual, punishment, and a garden built from fear.',
-    fullDescription: 'A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Follow a structured path through sound, stillness, and ceremony, where each room tests your nerve against the weight of a brutal past.',
-    scareLevel: 2,
-    durationMinutes: 75,
-    ageRestriction: 18,
-    sensoryAdvisories: 'Metallic sound, low lighting, stillness, guided instruction',
-    coverImageUrl: null,
-    isActive: true,
-    image: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1600&q=85',
-    accent: 'from-[#4c4438] to-[#16130f]'
-  },
-  {
-    id: '5',
-    title: 'Aftercare at Midnight',
-    slug: 'aftercare-at-midnight',
-    eyebrow: 'The quiet room',
-    shortDescription: 'A live-actor historical horror encounter where the aftermath of plague and punishment still breathes.',
-    fullDescription: 'A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. This quieter space lingers in the aftermath of fear, where the past refuses to stay buried and every whisper tells another story.',
-    scareLevel: 1,
-    durationMinutes: 60,
-    ageRestriction: 18,
-    sensoryAdvisories: 'Low lighting, quiet conversation, optional touch, seated scenes',
-    coverImageUrl: null,
-    isActive: true,
-    image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1600&q=85',
-    accent: 'from-[#6d3b4b] to-[#1b0e15]'
-  },
-  {
-    id: '6',
-    title: 'The Nocturne Protocol',
-    slug: 'the-nocturne-protocol',
-    eyebrow: 'The overnight suite',
-    shortDescription: 'A live-actor historical horror overnight descent through plague, punishment, and local legend.',
-    fullDescription: 'A live-actor, walk-through historical horror experience covering 300+ years of plague, torture, and local dark history. Stay until morning in our most immersive story, where ritual, fear, and the echoes of a tortured past follow you through the night.',
-    scareLevel: 3,
-    durationMinutes: 120,
-    ageRestriction: 18,
-    sensoryAdvisories: 'Overnight stay, low lighting, theatrical sound, guided participation',
-    coverImageUrl: null,
-    isActive: true,
-    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=85',
-    accent: 'from-[#272b3b] to-[#0b0d14]'
+    image: 'https://images.unsplash.com/photo-1542626991-cbc4e32524cc?auto=format&fit=crop&w=1600&q=85',
+    accent: 'from-[#1a1a2a] to-[#08080f]'
   }
 ];
 
@@ -672,7 +610,7 @@ function StudioPage({ page, shows, open }: { page: Exclude<StudioPageName, 'home
   const pageContent = {
     experiences: {
       eyebrow: 'Choose your room',
-      title: 'Six stories.\nOne night of trust.',
+      title: 'Three stories.\nOne night of trust.',
       description: 'Explore our adult BDSM-inspired experiences, compare the atmosphere, and choose a room built around consent, roles, and ritual.'
     },
     visit: {
@@ -872,7 +810,7 @@ function CastleDungeonHero() {
         </motion.div>
 
         <div className="mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/20 pt-5 text-[10px] uppercase tracking-[0.16em] text-white/50 sm:mt-24">
-          <HeroStat value="6" label="Unique rooms" />
+          <HeroStat value="3" label="Unique rooms" />
           <HeroStat value="Timed" label="Entry slots" />
           <HeroStat value="10+" label="Recommended age" />
         </div>
