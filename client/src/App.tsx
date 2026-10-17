@@ -31,17 +31,17 @@ const showMetadata: Record<string, { eyebrow: string; accent: string; image: str
   'the-plague-doctor': {
     eyebrow: 'The beak and the cure',
     accent: 'from-[#1a2a1a] to-[#0a0f0a]',
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=1600&q=85'
+    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85'
   },
   'the-torturer': {
     eyebrow: 'The dungeon below',
     accent: 'from-[#2a0a0a] to-[#0f0505]',
-    image: 'https://images.unsplash.com/photo-1509475826633-fed577a2c71b?auto=format&fit=crop&w=1600&q=85'
+    image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=85'
   },
   'the-judge': {
     eyebrow: 'The court of no mercy',
     accent: 'from-[#1a1a2a] to-[#08080f]',
-    image: 'https://images.unsplash.com/photo-1542626991-cbc4e32524cc?auto=format&fit=crop&w=1600&q=85'
+    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85'
   },
 
 };
@@ -60,7 +60,7 @@ const defaultFallbackShows: EnrichedShow[] = [
     sensoryAdvisories: 'Low lighting, theatrical fog, close-contact performance, verbal participation',
     coverImageUrl: null,
     isActive: true,
-    image: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=1600&q=85',
+    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=85',
     accent: 'from-[#1a2a1a] to-[#0a0f0a]'
   },
   {
@@ -76,7 +76,7 @@ const defaultFallbackShows: EnrichedShow[] = [
     sensoryAdvisories: 'Metallic sound, low lighting, close proximity, guided instruction',
     coverImageUrl: null,
     isActive: true,
-    image: 'https://images.unsplash.com/photo-1509475826633-fed577a2c71b?auto=format&fit=crop&w=1600&q=85',
+    image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1600&q=85',
     accent: 'from-[#2a0a0a] to-[#0f0505]'
   },
   {
@@ -92,7 +92,7 @@ const defaultFallbackShows: EnrichedShow[] = [
     sensoryAdvisories: 'Low lighting, theatrical sound, social interaction, optional participation',
     coverImageUrl: null,
     isActive: true,
-    image: 'https://images.unsplash.com/photo-1542626991-cbc4e32524cc?auto=format&fit=crop&w=1600&q=85',
+    image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=85',
     accent: 'from-[#1a1a2a] to-[#08080f]'
   }
 ];
