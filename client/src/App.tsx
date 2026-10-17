@@ -671,7 +671,7 @@ function ExperiencesPageContent({ shows, open }: { shows: EnrichedShow[]; open: 
             <h2 className="mt-3 font-display text-2xl">{show.title}</h2>
             <p className="mt-3 text-sm leading-6 text-white/55">{show.fullDescription || show.shortDescription}</p>
             <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-5 text-[10px] uppercase tracking-widest text-white/50">
-              <span>{show.durationMinutes} minutes</span><span>{show.ageRestriction}+ only</span>
+              <span>{show.ageRestriction}+ only</span>
             </div>
             <button className="ember-button mt-6 w-full bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={() => open(show)}>Book this story</button>
           </div>
