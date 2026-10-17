@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
-  Clock3,
   Download,
   Eye,
   MapPin,
@@ -1070,7 +1069,6 @@ function Portal() {
                     </motion.div>
 
                     <div className="mt-8 flex flex-wrap gap-5 text-[10px] font-bold uppercase tracking-widest text-white/30">
-                      <span className="flex items-center gap-1.5"><Clock3 size={12} className="text-ember/60" />{show.durationMinutes} min</span>
                       <span className="flex items-center gap-1.5"><Eye size={12} className="text-ember/60" />{show.ageRestriction}+ only</span>
                       <ScareLevel level={show.scareLevel} />
                     </div>
