@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
-  Download,
   Eye,
   MapPin,
   Menu,
@@ -19,6 +18,7 @@ import {
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from './api';
 import type { Show as ApiShow } from '@the-midnight-studio/types';
+import { AdminDashboard } from './components/AdminDashboard';
 
 export interface EnrichedShow extends ApiShow {
   eyebrow: string;
@@ -241,7 +241,7 @@ function BookingModal() {
 
   if (!state.isOpen) return null;
 
-  const BOOKING_EMAIL = 'contactthornfundepths@gmail.com';
+  const BOOKING_EMAIL = 'thornfundepthsbooking@gmail.com';
 
   function validate() {
     const e: Record<string, string> = {};
@@ -318,7 +318,7 @@ function BookingModal() {
             <form onSubmit={handleSubmit} noValidate className="p-6 sm:p-8 space-y-6">
               <p className="text-sm text-white/55 leading-6">
                 Fill in your details below and we'll get back to you at{' '}
-                <strong className="text-ember">contactthornfundepths@gmail.com</strong>{' '}
+                <strong className="text-ember">thornfundepthsbooking@gmail.com</strong>{' '}
                 within 24 hours to confirm availability and arrange payment.
               </p>
 
@@ -712,38 +712,11 @@ function ContactPageContent({ open }: { open: () => void }) {
       setStatus((error as Error).message || 'Message could not be sent. Please try again.');
     } finally { setSending(false); }
   }
-  return <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_0.8fr]"><form className="border border-white/10 bg-black/20 p-6 sm:p-8" onSubmit={submit}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Send an enquiry</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-xs uppercase tracking-widest text-white/50">Name<input className="booking-input mt-2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label></div><label className="mt-5 block text-xs uppercase tracking-widest text-white/50">Message<textarea className="booking-input mt-2 min-h-40 resize-y" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required minLength={10} /></label>{status && <p className="mt-4 text-sm text-ember" role="status">{status}</p>}<button className="ember-button mt-6 bg-ember px-6 py-4 text-xs font-bold uppercase tracking-widest text-obsidian disabled:opacity-50" disabled={sending} type="submit">{sending ? 'Sending...' : 'Send message'}</button></form><aside className="border border-white/10 bg-black/20 p-6 sm:p-8"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Direct contact</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block break-all text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:contactthornfundepths@gmail.com">contactthornfundepths@gmail.com</a><p className="mt-6 text-sm leading-7 text-white/50">For accessibility questions, group bookings, or anything that needs a considered answer, send us a note.</p><button className="ember-button mt-7 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></aside></div>;
+  return <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_0.8fr]"><form className="border border-white/10 bg-black/20 p-6 sm:p-8" onSubmit={submit}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Send an enquiry</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-xs uppercase tracking-widest text-white/50">Name<input className="booking-input mt-2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label></div><label className="mt-5 block text-xs uppercase tracking-widest text-white/50">Message<textarea className="booking-input mt-2 min-h-40 resize-y" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required minLength={10} /></label>{status && <p className="mt-4 text-sm text-ember" role="status">{status}</p>}<button className="ember-button mt-6 bg-ember px-6 py-4 text-xs font-bold uppercase tracking-widest text-obsidian disabled:opacity-50" disabled={sending} type="submit">{sending ? 'Sending...' : 'Send message'}</button></form><aside className="border border-white/10 bg-black/20 p-6 sm:p-8"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Direct contact</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block break-all text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:umarayomide700@gmail.com">umarayomide700@gmail.com</a><p className="mt-6 text-sm leading-7 text-white/50">For accessibility questions, group bookings, or anything that needs a considered answer, send us a note.</p><button className="ember-button mt-7 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></aside></div>;
 }
 
 function AdminPage() {
-  const [adminKey, setAdminKey] = useState('');
-  const [shows, setShows] = useState<any[]>([]);
-  const [slots, setSlots] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const load = async () => {
-    try {
-      setError(null);
-      const [nextShows, nextSlots, nextBookings] = await Promise.all([api.adminShows(adminKey), api.adminSlots(adminKey), api.adminBookings(adminKey, search)]);
-      setShows(nextShows); setSlots(nextSlots); setBookings(nextBookings);
-    } catch (err) { setError((err as Error).message); }
-  };
-  const exportBookings = async () => {
-    const blob = await api.adminExport(adminKey);
-    const url = URL.createObjectURL(blob); const link = document.createElement('a');
-    link.href = url; link.download = 'midnight-studio-bookings.csv'; link.click(); URL.revokeObjectURL(url);
-  };
-  return <main className="dungeon-shell min-h-screen px-6 pb-24 pt-32 text-white lg:px-12"><div className="mx-auto max-w-7xl">
-    <header className="flex flex-col justify-between gap-5 border-b border-white/10 pb-8 md:flex-row md:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[0.35em] text-ember">Operations room</p><h1 className="mt-4 font-display text-5xl">Studio control</h1></div><a className="text-xs uppercase tracking-widest text-white/50 hover:text-ember" href="#/">Return to site</a></header>
-    {!shows.length && <form className="mt-10 max-w-md border border-white/10 bg-black/20 p-6" onSubmit={(event) => { event.preventDefault(); void load(); }}><label className="text-xs uppercase tracking-widest text-white/50" htmlFor="admin-key">Admin key</label><input id="admin-key" className="booking-input mt-3" type="password" value={adminKey} onChange={(event) => setAdminKey(event.target.value)} required /><button className="ember-button mt-5 bg-ember px-5 py-3 text-xs font-bold uppercase tracking-widest text-obsidian" type="submit">Open dashboard</button></form>}
-    {error && <p className="mt-6 border border-fiery/40 bg-fiery/10 p-4 text-sm text-fiery" role="alert">{error}</p>}
-    {!!shows.length && <div className="mt-10 space-y-10">
-      <section aria-labelledby="admin-experiences"><div className="flex items-center justify-between"><h2 id="admin-experiences" className="font-display text-3xl">Experiences</h2><button className="text-xs uppercase tracking-widest text-ember" onClick={() => void load()}>Refresh</button></div><div className="mt-4 grid gap-3 lg:grid-cols-3">{shows.map((show) => <article className="border border-white/10 bg-black/20 p-5" key={show.id}><h3 className="font-display text-xl">{show.title}</h3><label className="mt-5 block text-[10px] uppercase tracking-widest text-white/40" htmlFor={`price-${show.id}`}>Base price (pence)</label><input id={`price-${show.id}`} className="booking-input mt-2" defaultValue={show.basePriceInCents} type="number" onBlur={(event) => void api.updateAdminShow(adminKey, show.id, { basePriceInCents: Number(event.target.value) })} /><p className="mt-4 text-xs text-white/45">{show._count?.slots ?? 0} slots configured</p></article>)}</div></section>
-      <section aria-labelledby="admin-slots"><h2 id="admin-slots" className="font-display text-3xl">Timeslot controls</h2><div className="mt-4 overflow-x-auto border border-white/10"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-black/30 text-[10px] uppercase tracking-widest text-white/45"><tr><th className="p-4">Experience</th><th className="p-4">Starts</th><th className="p-4">Capacity</th><th className="p-4">Status</th><th className="p-4">Action</th></tr></thead><tbody>{slots.slice(0, 60).map((slot) => <tr className="border-t border-white/10" key={slot.id}><td className="p-4">{slot.show?.title}</td><td className="p-4">{new Date(slot.startsAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</td><td className="p-4">{slot.bookedCount + slot.heldCount}/{slot.totalCapacity}</td><td className="p-4">{slot.isBlocked ? 'Blocked' : 'Open'}</td><td className="p-4"><button className="text-xs uppercase tracking-widest text-ember" onClick={() => api.updateAdminSlot(adminKey, slot.id, { isBlocked: !slot.isBlocked }).then(() => load())}>{slot.isBlocked ? 'Unblock' : 'Block'}</button></td></tr>)}</tbody></table></div></section>
-      <section aria-labelledby="admin-bookings"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h2 id="admin-bookings" className="font-display text-3xl">Bookings</h2><p className="mt-2 text-sm text-white/45">{bookings.length} results</p></div><div className="flex gap-2"><input className="booking-input max-w-xs" placeholder="Search reference or email" value={search} onChange={(event) => setSearch(event.target.value)} /><button className="border border-white/15 px-4 text-xs uppercase tracking-widest hover:border-ember" onClick={() => void load()}>Search</button><button aria-label="Export bookings CSV" className="border border-white/15 px-4 text-ember hover:border-ember" onClick={() => void exportBookings()}><Download size={16} /></button></div></div><div className="mt-4 overflow-x-auto border border-white/10"><table className="w-full min-w-[720px] text-left text-sm"><thead className="bg-black/30 text-[10px] uppercase tracking-widest text-white/45"><tr><th className="p-4">Reference</th><th className="p-4">Guest</th><th className="p-4">Status</th><th className="p-4">Total</th><th className="p-4">Created</th></tr></thead><tbody>{bookings.map((booking) => <tr className="border-t border-white/10" key={booking.id}><td className="p-4 font-mono text-ember">{booking.bookingReference}</td><td className="p-4">{booking.customerName}<span className="block text-xs text-white/40">{booking.customerEmail}</span></td><td className="p-4">{booking.paymentStatus}</td><td className="p-4">£{(booking.totalPaidInCents / 100).toFixed(2)}</td><td className="p-4 text-white/50">{new Date(booking.createdAt).toLocaleDateString('en-GB')}</td></tr>)}</tbody></table></div></section>
-    </div>}
-  </div></main>;
+  return <AdminDashboard />;
 }
 
 function ManageBookingPage() {

@@ -90,6 +90,14 @@ export const api = {
     if (!response.ok) throw new Error('Could not export bookings.');
     return response.blob();
   },
+  adminStats: (adminKey: string) => adminRequest<{
+    totalBookings: number; confirmedBookings: number; pendingBookings: number;
+    cancelledBookings: number; totalRevenueInCents: number; upcomingSlots: number;
+  }>('/admin/stats', adminKey),
+  adminUpdateBookingStatus: (adminKey: string, bookingId: string, status: 'CONFIRMED' | 'CANCELLED') =>
+    adminRequest<any>(`/admin/bookings/${bookingId}/status`, adminKey, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  adminSendEmail: (adminKey: string, bookingId: string, template: string, vars?: Record<string, string>) =>
+    adminRequest<{ sent: boolean; to: string }>(`/admin/bookings/${bookingId}/email`, adminKey, { method: 'POST', body: JSON.stringify({ template, vars }) }),
   sendContactMessage: (payload: { name: string; email: string; message: string }) =>
     request<{ sent: boolean }>('/contact', { method: 'POST', body: JSON.stringify(payload) }),
 };
