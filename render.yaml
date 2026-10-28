@@ -36,5 +36,7 @@ services:
     buildCommand: npm ci && npm run build --workspace client
     staticPublishPath: client/dist
     envVars:
+      - key: NODE_ENV
+        value: development
       - key: VITE_API_BASE_URL
         value: https://the-midnight-studio-api.onrender.com
