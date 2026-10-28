@@ -14,7 +14,7 @@ const contactSchema = z.object({
 router.post('/contact', async (request, response, next) => {
   try {
     const input = contactSchema.parse(request.body);
-    const recipient = process.env.OWNER_EMAIL ?? 'umarayomide700@gmail.com';
+    const recipient = process.env.OWNER_EMAIL ?? 'contactthornfundepths@gmail.com';
     if (!resend || !process.env.EMAIL_FROM) {
       throw new ApiError(503, 'Contact email is not configured yet.', 'CONTACT_EMAIL_NOT_CONFIGURED');
     }
