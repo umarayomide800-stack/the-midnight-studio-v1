@@ -241,7 +241,7 @@ function BookingModal() {
 
   if (!state.isOpen) return null;
 
-  const BOOKING_EMAIL = 'contactthornfundepths@gmail.com';
+  const BOOKING_EMAIL = 'thornfundepthsbooking@gmail.com';
 
   function validate() {
     const e: Record<string, string> = {};
@@ -318,7 +318,7 @@ function BookingModal() {
             <form onSubmit={handleSubmit} noValidate className="p-6 sm:p-8 space-y-6">
               <p className="text-sm text-white/55 leading-6">
                 Fill in your details below and we'll get back to you at{' '}
-                <strong className="text-ember">contactthornfundepths@gmail.com</strong>{' '}
+                <strong className="text-ember">thornfundepthsbooking@gmail.com</strong>{' '}
                 within 24 hours to confirm availability and arrange payment.
               </p>
 
@@ -712,7 +712,7 @@ function ContactPageContent({ open }: { open: () => void }) {
       setStatus((error as Error).message || 'Message could not be sent. Please try again.');
     } finally { setSending(false); }
   }
-  return <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_0.8fr]"><form className="border border-white/10 bg-black/20 p-6 sm:p-8" onSubmit={submit}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Send an enquiry</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-xs uppercase tracking-widest text-white/50">Name<input className="booking-input mt-2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label></div><label className="mt-5 block text-xs uppercase tracking-widest text-white/50">Message<textarea className="booking-input mt-2 min-h-40 resize-y" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required minLength={10} /></label>{status && <p className="mt-4 text-sm text-ember" role="status">{status}</p>}<button className="ember-button mt-6 bg-ember px-6 py-4 text-xs font-bold uppercase tracking-widest text-obsidian disabled:opacity-50" disabled={sending} type="submit">{sending ? 'Sending...' : 'Send message'}</button></form><aside className="border border-white/10 bg-black/20 p-6 sm:p-8"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Direct contact</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block break-all text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:contactthornfundepths@gmail.com">contactthornfundepths@gmail.com</a><p className="mt-6 text-sm leading-7 text-white/50">For accessibility questions, group bookings, or anything that needs a considered answer, send us a note.</p><button className="ember-button mt-7 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></aside></div>;
+  return <div className="mt-12 grid max-w-5xl gap-8 lg:grid-cols-[1fr_0.8fr]"><form className="border border-white/10 bg-black/20 p-6 sm:p-8" onSubmit={submit}><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Send an enquiry</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><label className="text-xs uppercase tracking-widest text-white/50">Name<input className="booking-input mt-2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label className="text-xs uppercase tracking-widest text-white/50">Email<input className="booking-input mt-2" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} required /></label></div><label className="mt-5 block text-xs uppercase tracking-widest text-white/50">Message<textarea className="booking-input mt-2 min-h-40 resize-y" value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} required minLength={10} /></label>{status && <p className="mt-4 text-sm text-ember" role="status">{status}</p>}<button className="ember-button mt-6 bg-ember px-6 py-4 text-xs font-bold uppercase tracking-widest text-obsidian disabled:opacity-50" disabled={sending} type="submit">{sending ? 'Sending...' : 'Send message'}</button></form><aside className="border border-white/10 bg-black/20 p-6 sm:p-8"><p className="text-[10px] uppercase tracking-[0.25em] text-ember">Direct contact</p><h2 className="mt-6 font-display text-2xl">Talk to the studio</h2><a className="mt-5 block break-all text-sm text-white/65 underline decoration-ember underline-offset-4 hover:text-ember" href="mailto:thornfundepthsbooking@gmail.com">thornfundepthsbooking@gmail.com</a><p className="mt-6 text-sm leading-7 text-white/50">For accessibility questions, group bookings, or anything that needs a considered answer, send us a note.</p><button className="ember-button mt-7 bg-crimson px-5 py-4 text-xs font-bold uppercase tracking-[0.15em]" onClick={open}>Book tickets</button></aside></div>;
 }
 
 function AdminPage() {
